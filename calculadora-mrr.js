@@ -1,4 +1,4 @@
-﻿const { useState, useMemo, useCallback, useRef, useEffect } = React;
+const { useState, useMemo, useCallback, useRef, useEffect } = React;
 const { createPortal } = ReactDOM;
 
 /* ─── Constants ──────────────────────── */
@@ -397,9 +397,9 @@ function Calculadora() {
       <header className="sticky top-0 z-50 border-b border-brand-border/50"
         style={{background:'rgba(9,15,12,.93)',backdropFilter:'blur(18px)'}}>
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <a href="../index.html"><img src="../assets/logo_helenacrm_branco.png" alt="Helena CRM" className="h-7"/></a>
+          <a href="#"><img src="https://cdn.jsdelivr.net/gh/painel-helena/helena-calculadora@main/logo_helenacrm_branco.png" alt="Helena CRM" className="h-7"/></a>
           <span className="text-xs font-600 tracking-wider text-g-400/50 hidden sm:block">SIMULADOR DE POTENCIAL · PARCEIROS WHITE LABEL</span>
-          <a href="../pages/white-label.html" className="text-xs font-600 px-3 py-1.5 rounded-lg border border-g-600/25 text-g-400 hover:bg-g-900/40 transition">Ser Parceiro →</a>
+          <a href="#" className="text-xs font-600 px-3 py-1.5 rounded-lg border border-g-600/25 text-g-400 hover:bg-g-900/40 transition">Ser Parceiro →</a>
         </div>
       </header>
 
@@ -1242,11 +1242,11 @@ function Calculadora() {
       {/* ── Footer ── */}
       <footer className="border-t border-brand-border/40">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <img src="../assets/logo_helenacrm_branco.png" alt="Helena CRM" className="h-6 opacity-50"/>
+          <img src="https://cdn.jsdelivr.net/gh/painel-helena/helena-calculadora@main/logo_helenacrm_branco.png" alt="Helena CRM" className="h-6 opacity-50"/>
           <p className="text-xs text-slate-700 text-center max-w-md">
             Valores baseados nos planos oficiais da Helena CRM. Simulação para fins informativos. Consulte um especialista para proposta personalizada.
           </p>
-          <a href="../pages/white-label.html" className="text-xs text-g-600 hover:text-g-400 transition">Ver White Label →</a>
+          <a href="#" className="text-xs text-g-600 hover:text-g-400 transition">Ver White Label →</a>
         </div>
       </footer>
 
