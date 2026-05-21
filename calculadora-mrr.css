@@ -1,0 +1,74 @@
+﻿    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:'Inter',sans-serif;background:#090F0C;color:#D8E8DE;-webkit-font-smoothing:antialiased}
+
+    /* ── Range sliders ──────────────────── */
+    input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:9999px;outline:none;cursor:pointer;width:100%}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#00D15E;cursor:pointer;border:3px solid #090F0C;box-shadow:0 0 0 3px #00D15E30;transition:box-shadow .15s,transform .1s}
+    input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 9px #00D15E18;transform:scale(1.08)}
+    input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#00D15E;cursor:pointer;border:3px solid #090F0C}
+
+    /* ── Gradient text ──────────────────── */
+    @keyframes gs{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+    .gt{background:linear-gradient(270deg,#00D15E,#D8F558,#00D15E,#4ADE80);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gs 4s ease infinite}
+
+    /* ── Cards ──────────────────────────── */
+    .card{background:rgba(16,26,20,.85);border:1px solid rgba(0,209,94,.08);border-radius:20px;backdrop-filter:blur(14px)}
+
+    /* ── Toggle switch ──────────────────── */
+    .sw{position:relative;display:inline-flex;width:42px;height:23px;flex-shrink:0;cursor:pointer}
+    .sw input{opacity:0;width:0;height:0}
+    .sw-t{position:absolute;inset:0;background:#182518;border-radius:12px;transition:background .2s;border:1px solid #223322}
+    .sw input:checked~.sw-t{background:#00D15E;border-color:#00D15E}
+    .sw-k{position:absolute;top:3px;left:3px;width:15px;height:15px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px #0006}
+    .sw input:checked~.sw-k{transform:translateX(19px)}
+
+    /* ── Format cards ──────────────────── */
+    .fmt{border:1px solid rgba(0,209,94,.08);border-radius:16px;background:rgba(16,26,20,.6);cursor:pointer;transition:all .2s;padding:14px 16px}
+    .fmt:hover{border-color:rgba(0,209,94,.25);background:rgba(0,209,94,.06)}
+    .fmt.sel{border-color:#00D15E;background:rgba(0,209,94,.1);box-shadow:0 0 0 1px #00D15E18,0 6px 24px #00D15E14}
+
+    /* ── Stream cards ──────────────────── */
+    .stream{border:1px solid rgba(255,255,255,.05);border-radius:14px;background:rgba(16,26,20,.5);transition:all .2s;padding:14px}
+    .stream.on{border-color:rgba(0,209,94,.25);background:rgba(0,209,94,.07)}
+
+    /* ── Animations ─────────────────────── */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .fu{animation:fadeUp .35s ease-out both}
+    @keyframes barUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+    .bar{transform-origin:bottom;animation:barUp .5s cubic-bezier(.23,1,.32,1) both}
+    @keyframes countUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .cu{animation:countUp .4s ease-out both}
+    @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.6}}
+    .pulse2{animation:pulse2 2.5s ease-in-out infinite}
+
+    /* ── Tier badge ─────────────────────── */
+    .tier-bronze{background:linear-gradient(135deg,#3D2B1F,#6B4226);border-color:#A0522D}
+    .tier-silver{background:linear-gradient(135deg,#1E2530,#2E3D50);border-color:#64748B}
+    .tier-gold{background:linear-gradient(135deg,#2D2000,#4A3800);border-color:#CA8A04}
+    .tier-platinum{background:linear-gradient(135deg,#0A2A1A,#0D3D25);border-color:#00D15E}
+
+    /* ── Milestone marker ───────────────── */
+    .milestone{position:absolute;bottom:100%;transform:translateX(-50%);white-space:nowrap}
+
+    /* ── Scrollbar ──────────────────────── */
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#090F0C}::-webkit-scrollbar-thumb{background:#182518;border-radius:2px}
+
+    /* ── Number counter glow ────────────── */
+    .glow-green{text-shadow:0 0 30px #00D15E40}
+
+    /* ── Tooltip ────────────────────────── */
+    .tip-btn{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid #2A4030;background:#0D1A13;color:#4A7A5A;font-size:9px;font-weight:800;cursor:pointer;flex-shrink:0;transition:all .15s;line-height:1;vertical-align:middle;margin-left:4px}
+    .tip-btn:hover{border-color:#00D15E;color:#00D15E;background:#041A0C}
+    .tip-box{position:absolute;z-index:300;width:260px;background:#0B1E13;border:1px solid rgba(0,209,94,.22);border-radius:14px;box-shadow:0 8px 32px #00000060,0 0 0 1px rgba(0,209,94,.06);pointer-events:none}
+    .tip-box-title{font-size:10px;font-weight:800;color:#00D15E;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+    .tip-box-body{font-size:12px;color:#C8DDD4;line-height:1.6}
+    .tip-box::before{content:'';position:absolute;width:8px;height:8px;background:#0B1E13;border:1px solid rgba(0,209,94,.22);transform:rotate(45deg)}
+    .tip-top{bottom:calc(100% + 10px);left:50%;transform:translateX(-50%)}
+    .tip-top::before{bottom:-5px;left:50%;transform:translateX(-50%) rotate(45deg);border-top:none;border-left:none}
+    .tip-left{right:calc(100% + 10px);top:50%;transform:translateY(-50%)}
+    .tip-left::before{right:-5px;top:50%;transform:translateY(-50%) rotate(45deg);border-bottom:none;border-left:none}
+    .tip-right{left:calc(100% + 10px);top:50%;transform:translateY(-50%)}
+    .tip-right::before{left:-5px;top:50%;transform:translateY(-50%) rotate(45deg);border-top:none;border-right:none}
+    .tip-bottom{top:calc(100% + 10px);left:50%;transform:translateX(-50%)}
+    .tip-bottom::before{top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);border-bottom:none;border-right:none}
