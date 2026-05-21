@@ -399,7 +399,7 @@ function Calculadora() {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <a href="#"><img src="https://cdn.jsdelivr.net/gh/painel-helena/helena-calculadora@main/logo_helenacrm_branco.png" alt="Helena CRM" className="h-7"/></a>
           <span className="text-xs font-600 tracking-wider text-g-400/50 hidden sm:block">SIMULADOR DE POTENCIAL · PARCEIROS WHITE LABEL</span>
-          <a href="#" className="text-xs font-600 px-3 py-1.5 rounded-lg border border-g-600/25 text-g-400 hover:bg-g-900/40 transition">Ser Parceiro →</a>
+          <a href="#cta-form" onClick={e=>{e.preventDefault();document.getElementById('cta-form')?.scrollIntoView({behavior:'smooth',block:'center'});}} className="text-xs font-600 px-3 py-1.5 rounded-lg border border-g-600/25 text-g-400 hover:bg-g-900/40 transition">Ser Parceiro →</a>
         </div>
       </header>
 
@@ -1153,9 +1153,9 @@ function Calculadora() {
 
           {/* ── CTA / Form ── */}
           {step===0&&(
-            <div className="card p-5">
+            <div className="card p-5" id="cta-form">
               <div className="text-center mb-4">
-                <div className="text-base font-800 text-slate-100 mb-1">Quer este resultado para sua agência?</div>
+                <div className="text-base font-800 text-slate-100 mb-1">Quer este resultado para o seu negócio?</div>
                 <div className="text-xs text-slate-500 leading-relaxed">
                   Um especialista Helena monta um plano personalizado com base nesta simulação.
                 </div>
@@ -1174,7 +1174,7 @@ function Calculadora() {
           )}
 
           {step===1&&(
-            <div className="card p-5 fu">
+            <div className="card p-5 fu" id="cta-form">
               <div className="text-sm font-700 text-slate-200 mb-1">Receba sua simulação completa</div>
               <p className="text-xs text-slate-500 mb-4">Preencha seus dados e um especialista Helena envia a proposta personalizada no seu WhatsApp.</p>
               <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -1214,7 +1214,7 @@ function Calculadora() {
           )}
 
           {step===2&&(
-            <div className="card p-6 text-center fu">
+            <div className="card p-6 text-center fu" id="cta-form">
               <div className="text-4xl mb-3">🎉</div>
               <h3 className="text-base font-800 text-g-400 mb-2">Simulação enviada!</h3>
               <p className="text-sm text-slate-400 leading-relaxed mb-4">
@@ -1246,7 +1246,7 @@ function Calculadora() {
           <p className="text-xs text-slate-700 text-center max-w-md">
             Valores baseados nos planos oficiais da Helena CRM. Simulação para fins informativos. Consulte um especialista para proposta personalizada.
           </p>
-          <a href="#" className="text-xs text-g-600 hover:text-g-400 transition">Ver White Label →</a>
+          <a href="https://www.helenacrm.com/crm-white-label?utm_source=calculadora&utm_medium=footer&utm_campaign=white-label" target="_blank" rel="noopener" className="text-xs text-g-600 hover:text-g-400 transition">Ver White Label →</a>
         </div>
       </footer>
 
