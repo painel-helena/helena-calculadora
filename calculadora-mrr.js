@@ -163,8 +163,9 @@ function Chart({ data, breakEvenMonth }) {
           return (
             <div key={i} className="flex-1 flex flex-col justify-end h-full relative group">
               {isBE && (
-                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap">
-                  <div className="bg-g-400 text-brand-dark text-[9px] font-800 px-1.5 py-0.5 rounded-full">✓ Parcelas quitadas</div>
+                <div className="absolute left-1/2 -translate-x-1/2 z-10 whitespace-nowrap pointer-events-none"
+                     style={{bottom:`calc(${pM+pI+pS+pN}% + 4px)`}}>
+                  <div className="bg-g-400 text-brand-dark text-[9px] font-800 px-1.5 py-0.5 rounded-full shadow-md">✓ Parcelas quitadas</div>
                 </div>
               )}
               {pS>0&&<div className={`bar w-full ${isLast?'bg-cyan-400/80':'bg-cyan-700/50'}`} style={{height:`${pS}%`,animationDelay:`${i*28}ms`}}/>}
