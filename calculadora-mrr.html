@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calculadora de Potencial — Helena CRM Parceiros</title>
-  <link rel="icon" type="image/png" href="../assets/logo_helena_simbolo_colorido.png" />
+  <link rel="icon" type="image/png" href="/logo_helena_simbolo_colorido.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -12,7 +12,22 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{brand:{dark:'#090F0C',mid:'#0C1510',card:'#101A14',border:'#182518'},g:{900:'#041A0C',800:'#083018',700:'#0D4526',600:'#155C35',500:'#1E7A46',400:'#00D15E',300:'#4ADE80',lime:'#D8F558'}},fontFamily:{sans:['Inter','sans-serif']}}}}}</script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { dark: '#090F0C', mid: '#0C1510', card: '#101A14', border: '#182518' },
+            g: {
+              900: '#041A0C', 800: '#083018', 700: '#0D4526', 600: '#155C35',
+              500: '#1E7A46', 400: '#00D15E', 300: '#4ADE80', lime: '#D8F558'
+            }
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
   <link rel="stylesheet" href="calculadora-mrr.css" />
 </head>
 <body>
