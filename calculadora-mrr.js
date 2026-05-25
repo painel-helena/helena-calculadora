@@ -349,10 +349,10 @@ function Calculadora() {
     ? projecao.slice(parcelas).reduce((s,d)=>s+d.custo, 0) / (12 - parcelas)
     : 0;
   // investimento total: soma de todos os custos dos 12 meses
-  const investimento12 = projecao.reduce((s,d)=>s+d.custo, 0);
-  // mês em que o acumulado fica positivo (break-even financeiro)
+  // (removido — não está mais sendo exibido)
+  // mês em que a margem mensal vira positiva (receita do mês cobre custo do mês)
   const breakEvenMes = (() => {
-    const idx = projecao.findIndex(d => d.cumMargem >= 0);
+    const idx = projecao.findIndex(d => d.margem >= 0);
     return idx === -1 ? null : idx + 1;
   })();
 
@@ -855,32 +855,26 @@ function Calculadora() {
             <Chart data={projecao} breakEvenMonth={paybackMes}/>
 
             {/* ── Cards-resumo de custos ── */}
-            <div className="grid grid-cols-2 gap-2.5 mt-4">
-              <div className="rounded-lg border px-3.5 py-3"
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              <div className="rounded-lg border px-3 py-3"
                 style={{background:'rgba(239,68,68,.05)',borderColor:'rgba(239,68,68,.2)'}}>
                 <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses 1{parcelas>1?`–${parcelas}`:''}</div>
-                <div className="text-lg font-800 text-red-400 mt-1">{brl(custoDurante)}<span className="text-[10px] text-red-400/60 font-600">/mês</span></div>
+                <div className="text-base font-800 text-red-400 mt-1">{brl(custoDurante)}<span className="text-[10px] text-red-400/60 font-600">/mês</span></div>
                 <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas>1?'durante parcelamento':'à vista no mês 1'}</div>
               </div>
-              <div className="rounded-lg border px-3.5 py-3"
+              <div className="rounded-lg border px-3 py-3"
                 style={{background:'rgba(0,209,94,.05)',borderColor:'rgba(0,209,94,.2)'}}>
                 <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses {Math.min(parcelas+1,12)}–12</div>
-                <div className="text-lg font-800 text-g-400 mt-1">{brl(custoApos)}<span className="text-[10px] text-g-400/60 font-600">/mês</span></div>
+                <div className="text-base font-800 text-g-400 mt-1">{brl(custoApos)}<span className="text-[10px] text-g-400/60 font-600">/mês</span></div>
                 <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas<12?'após quitação da implantação':'parcelamento dura 12 meses'}</div>
               </div>
-              <div className="rounded-lg border px-3.5 py-3"
-                style={{background:'rgba(255,255,255,.02)',borderColor:'rgba(255,255,255,.08)'}}>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Investimento 12m</div>
-                <div className="text-lg font-800 text-slate-200 mt-1">{brl(investimento12)}</div>
-                <div className="text-[10px] text-slate-600 mt-1 leading-tight">total de custos</div>
-              </div>
-              <div className="rounded-lg border px-3.5 py-3"
+              <div className="rounded-lg border px-3 py-3"
                 style={{background:'rgba(216,245,88,.05)',borderColor:'rgba(216,245,88,.25)'}}>
                 <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Break-even</div>
-                <div className="text-lg font-800 mt-1" style={{color:breakEvenMes?'#D8F558':'#64748B'}}>
+                <div className="text-base font-800 mt-1" style={{color:breakEvenMes?'#D8F558':'#64748B'}}>
                   {breakEvenMes ? `Mês ${breakEvenMes}` : 'Após 12m'}
                 </div>
-                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{breakEvenMes ? 'recupera investimento' : 'não recupera em 12m'}</div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{breakEvenMes ? 'começa a dar lucro' : 'não cobre custos em 12m'}</div>
               </div>
             </div>
 
