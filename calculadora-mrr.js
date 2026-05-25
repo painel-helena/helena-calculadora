@@ -745,6 +745,17 @@ function Calculadora() {
               ))}
             </div>
 
+            {/* Parcelamento da implantação */}
+            <div className="rounded-xl border border-brand-border/40 px-4 py-3 mb-3"
+              style={{background:'rgba(9,15,12,.6)'}}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-600 text-slate-300">Parcelamento da implantação</span>
+                <span className="text-sm font-800 text-amber-400">{parcelas===1?'À vista':`${parcelas}x`}</span>
+              </div>
+              <Slider min={1} max={10} step={1} value={parcelas} onChange={setParcelas}
+                fmtL={v=>'1x'} fmtR={v=>'10x'} fmtV={v=>v===1?'À vista':`${v}x`} accent="#EAB308"/>
+            </div>
+
             {/* Domínio próprio (só Pro) */}
             {plano==='pro'&&(
               <div className="flex items-center justify-between rounded-xl border px-4 py-2.5 mb-3 fu"
