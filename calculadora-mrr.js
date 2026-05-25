@@ -226,8 +226,8 @@ function Timeline({ hoje, paybackMes, mes12, parcelaSetup, parcelas }) {
   const steps = [
     { label:'Hoje', sub: brl(hoje)+'/mês',
       tip:'Sua margem mensal atual: receita total menos todos os custos — plataforma, repasses por cliente e parcela da implantação.' },
-    { label:`Mês ${fimParcelas}`, sub:`+${brl(parcelaSetup)}/mês ✓`,
-      tip:`No mês ${fimParcelas} suas parcelas de implantação são quitadas. Seu custo fixo cai ${brl(parcelaSetup)}/mês a partir daí — esse valor passa direto para a sua margem.` },
+    { label:`Mês ${fimParcelas}`, sub:`+${brl(parcelaSetup)} de margem ✓`,
+      tip:`No mês ${fimParcelas} a última parcela da implantação é paga. Seu custo fixo cai ${brl(parcelaSetup)}/mês — esse valor passa direto para a sua margem todo mês a partir daí. Não é o lucro total do mês, é o ganho extra que entra no bolso após quitar.` },
     { label:'Mês 12', sub: brl(mes12)+'/mês',
       tip:`Sua margem mensal projetada no 12º mês, com a base de clientes crescida. ${fimParcelas<=12?'Já sem as parcelas de implantação neste mês.':'As parcelas ainda estão ativas neste mês.'}` },
   ];
@@ -1000,35 +1000,18 @@ function Calculadora() {
             )}
           </div>
 
-          {/* ── Âncora de valor: vs fazer do zero ── */}
-          <div className="card p-4 border-brand-border/40">
-            <div className="text-xs font-700 text-slate-500 uppercase tracking-wide mb-3">Por que a Helena vale o investimento</div>
-            <div className="space-y-2.5">
-              {[
-                { label:'Desenvolver CRM próprio', val:'R$ 60.000+', dim:true, strike:true },
-                { label:'Manutenção mensal própria', val:'R$ 5.000+/mês', dim:true, strike:true },
-                { label:'Tempo de desenvolvimento', val:'12–18 meses', dim:true, strike:true },
-                { label:`Investimento Helena (${plano==='pro'?'Pro':'Premium'})`, val:`${brl(taxaSetup)} único`, dim:false, strike:false, highlight:true },
-                { label:'Pronto para operar', val:'Em dias', dim:false, strike:false, highlight:true },
-              ].map(r=>(
-                <div key={r.label} className={`flex items-center justify-between py-1.5 border-b last:border-0 ${r.highlight?'border-g-800':'border-brand-border/30'}`}>
-                  <span className={`text-xs ${r.dim?'text-slate-600 line-through':r.highlight?'text-slate-200 font-600':'text-slate-400'}`}>{r.label}</span>
-                  <span className={`text-xs font-700 ${r.dim?'text-slate-700':r.highlight?'text-g-400':'text-slate-500'}`}>{r.val}</span>
-                </div>
-              ))}
+          {/* ── Parcelas quitadas (mini insight) ── */}
+          {paybackMes&&(
+            <div className="rounded-xl border border-g-700/30 bg-g-900/40 px-3 py-2.5 text-center">
+              <span className="text-xs text-slate-400">Parcelas quitadas no </span>
+              <Tip pos="top"
+                title="Quando as parcelas são quitadas?"
+                text={`Você optou por ${parcelas===1?'pagar à vista':parcelas+'x de '+brl(parcelaSetup)+'/mês'}. No mês ${paybackMes} a última parcela é paga — a partir daí seu custo fixo cai ${brl(parcelaSetup)}/mês e esse valor vira lucro adicional todo mês.`}>
+                <span className="text-sm font-800 text-g-400">mês {paybackMes}</span>
+              </Tip>
+              <span className="text-xs text-slate-400"> — a partir daí, margem maior todo mês.</span>
             </div>
-            {paybackMes&&(
-              <div className="mt-3 rounded-xl border border-g-700/30 bg-g-900/40 px-3 py-2.5 text-center">
-                <span className="text-xs text-slate-400">Parcelas quitadas no </span>
-                <Tip pos="top"
-                  title="Quando as parcelas são quitadas?"
-                  text={`Você optou por ${parcelas===1?'pagar à vista':parcelas+'x de '+brl(parcelaSetup)+'/mês'}. No mês ${paybackMes} a última parcela é paga — a partir daí seu custo fixo cai ${brl(parcelaSetup)}/mês e esse valor vira lucro adicional todo mês.`}>
-                  <span className="text-sm font-800 text-g-400">mês {paybackMes}</span>
-                </Tip>
-                <span className="text-xs text-slate-400"> — a partir daí, margem maior todo mês.</span>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* ── Oportunidade perdida / urgência ── */}
           {perdidoMes > 0 && (
