@@ -147,12 +147,16 @@ function AnimNum({ value, prefix='', suffix='', className='' }) {
   return <span className={className}>{prefix}{num(display)}{suffix}</span>;
 }
 
-/* ─── Stacked bar chart ──────────────── */
+/* ─── Stacked bar chart + linha de custo ──── */
 function Chart({ data, breakEvenMonth }) {
-  const maxVal = Math.max(...data.map(d=>d.mrr+d.impl+d.sup+(d.insta||0)), 1);
+  const maxReceita = Math.max(...data.map(d=>d.mrr+d.impl+d.sup+(d.insta||0)), 1);
+  const maxCusto   = Math.max(...data.map(d=>d.custo||0), 1);
+  const maxVal     = Math.max(maxReceita, maxCusto);
+  // pontos da linha de custo (em % da altura)
+  const custoPts   = data.map((d,i)=>({ x:i, y: 100 - (d.custo/maxVal)*100 }));
   return (
     <div className="relative">
-      <div className="flex items-end gap-[3px] h-28">
+      <div className="flex items-end gap-[3px] h-28 relative">
         {data.map((d,i)=>{
           const pM = (d.mrr/maxVal)*100;
           const pI = (d.impl/maxVal)*100;
@@ -163,7 +167,7 @@ function Chart({ data, breakEvenMonth }) {
           return (
             <div key={i} className="flex-1 flex flex-col justify-end h-full relative group">
               {isBE && (
-                <div className="absolute left-1/2 -translate-x-1/2 z-10 whitespace-nowrap pointer-events-none"
+                <div className="absolute left-1/2 -translate-x-1/2 z-20 whitespace-nowrap pointer-events-none"
                      style={{bottom:`calc(${pM+pI+pS+pN}% + 4px)`}}>
                   <div className="bg-g-400 text-brand-dark text-[9px] font-800 px-1.5 py-0.5 rounded-full shadow-md">✓ Parcelas quitadas</div>
                 </div>
@@ -175,9 +179,31 @@ function Chart({ data, breakEvenMonth }) {
             </div>
           );
         })}
+        {/* Linha de custo sobreposta */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox={`0 0 ${data.length} 100`}>
+          <polyline
+            fill="none"
+            stroke="#EF4444"
+            strokeWidth="0.4"
+            strokeDasharray="1,0.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+            style={{strokeWidth:'2px'}}
+            points={custoPts.map(p=>`${p.x+0.5},${p.y}`).join(' ')}
+          />
+          {custoPts.map((p,i)=>(
+            <circle key={i} cx={p.x+0.5} cy={p.y} r="0.18" fill="#EF4444"/>
+          ))}
+        </svg>
       </div>
       <div className="flex gap-[3px] mt-1">
         {data.map((_,i)=><div key={i} className="flex-1 text-center text-[9px] text-slate-700">{MONTHS[i]}</div>)}
+      </div>
+      {/* Legenda */}
+      <div className="flex items-center justify-center gap-4 mt-2 text-[10px] text-slate-500">
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-g-400"/>Receita</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-px" style={{borderTop:'1.5px dashed #EF4444'}}/>Custo total</span>
       </div>
     </div>
   );
@@ -321,6 +347,21 @@ function Calculadora() {
   /* quando as parcelas terminam (dentro da janela de 12 meses) */
   const paybackMes  = parcelas <= 12 ? parcelas : null;
 
+  /* ── Métricas pros cards-resumo do gráfico ── */
+  // custo médio mensal durante o parcelamento (meses 1 a `parcelas`)
+  const custoDurante = projecao.slice(0, Math.min(parcelas, 12)).reduce((s,d)=>s+d.custo, 0) / Math.min(parcelas, 12);
+  // custo médio mensal após o parcelamento (meses parcelas+1 a 12)
+  const custoApos    = parcelas < 12
+    ? projecao.slice(parcelas).reduce((s,d)=>s+d.custo, 0) / (12 - parcelas)
+    : 0;
+  // investimento total: soma de todos os custos dos 12 meses
+  const investimento12 = projecao.reduce((s,d)=>s+d.custo, 0);
+  // mês em que o acumulado fica positivo (break-even financeiro)
+  const breakEvenMes = (() => {
+    const idx = projecao.findIndex(d => d.cumMargem >= 0);
+    return idx === -1 ? null : idx + 1;
+  })();
+
   /* ROI: lucro 12m vs total investido na implantação */
   const roi         = taxaSetup > 0 ? ((ganhoLiquido12/taxaSetup)*100) : 0;
 
@@ -452,10 +493,10 @@ function Calculadora() {
               <div>
                 <div className="flex justify-between items-baseline mb-0.5">
                   <span className="text-sm text-slate-300 font-500">Novos clientes / mês</span>
-                  <span className="text-xl font-900 text-g-400">+{novos}</span>
+                  <span className="text-xl font-900 text-g-400">{novos>0?`+${novos}`:'0'}</span>
                 </div>
-                <Slider min={1} max={25} step={1} value={novos} onChange={setNovos}
-                  fmtL={v=>`+${v}`} fmtR={v=>`+${v}`} fmtV={v=>`+${v}/mês`}/>
+                <Slider min={0} max={25} step={1} value={novos} onChange={setNovos}
+                  fmtL={v=>v>0?`+${v}`:'0'} fmtR={v=>`+${v}`} fmtV={v=>v>0?`+${v}/mês`:'sem novos clientes'}/>
                 <div className="mt-2 text-xs text-slate-600">
                   Em 12 meses: <span className="text-slate-400 font-600">{cli12} clientes ativos</span>
                 </div>
@@ -808,6 +849,36 @@ function Calculadora() {
             </div>
             <Chart data={projecao} breakEvenMonth={paybackMes}/>
 
+            {/* ── Cards-resumo de custos ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
+              <div className="rounded-lg border px-3 py-2.5"
+                style={{background:'rgba(239,68,68,.05)',borderColor:'rgba(239,68,68,.2)'}}>
+                <div className="text-[9px] uppercase tracking-wider text-slate-500">Meses 1{parcelas>1?`–${parcelas}`:''}</div>
+                <div className="text-base font-800 text-red-400 mt-0.5">{brl(custoDurante)}<span className="text-[10px] text-red-400/60">/mês</span></div>
+                <div className="text-[9px] text-slate-600 mt-0.5">{parcelas>1?'durante parcelamento':'à vista no mês 1'}</div>
+              </div>
+              <div className="rounded-lg border px-3 py-2.5"
+                style={{background:'rgba(0,209,94,.05)',borderColor:'rgba(0,209,94,.2)'}}>
+                <div className="text-[9px] uppercase tracking-wider text-slate-500">Meses {Math.min(parcelas+1,12)}–12</div>
+                <div className="text-base font-800 text-g-400 mt-0.5">{brl(custoApos)}<span className="text-[10px] text-g-400/60">/mês</span></div>
+                <div className="text-[9px] text-slate-600 mt-0.5">{parcelas<12?'após quitação da implantação':'parcelamento dura 12 meses'}</div>
+              </div>
+              <div className="rounded-lg border px-3 py-2.5"
+                style={{background:'rgba(255,255,255,.02)',borderColor:'rgba(255,255,255,.08)'}}>
+                <div className="text-[9px] uppercase tracking-wider text-slate-500">Investimento 12m</div>
+                <div className="text-base font-800 text-slate-200 mt-0.5">{brl(investimento12)}</div>
+                <div className="text-[9px] text-slate-600 mt-0.5">total de custos</div>
+              </div>
+              <div className="rounded-lg border px-3 py-2.5"
+                style={{background:'rgba(216,245,88,.05)',borderColor:'rgba(216,245,88,.25)'}}>
+                <div className="text-[9px] uppercase tracking-wider text-slate-500">Break-even</div>
+                <div className="text-base font-800 mt-0.5" style={{color:breakEvenMes?'#D8F558':'#64748B'}}>
+                  {breakEvenMes ? `Mês ${breakEvenMes}` : 'Após 12m'}
+                </div>
+                <div className="text-[9px] text-slate-600 mt-0.5">{breakEvenMes ? 'recupera investimento' : 'não recupera em 12m'}</div>
+              </div>
+            </div>
+
             {/* ── Tabela mensal ── */}
             <div className="mt-4 overflow-x-auto pb-1">
               <div className="flex gap-1.5 min-w-max mx-auto">
@@ -837,7 +908,7 @@ function Calculadora() {
                   );
                 })}
               </div>
-              <div className="text-center text-[9px] text-slate-700 mt-2">margem líquida mensal · arraste para ver todos os meses →</div>
+              <div className="text-center text-[9px] text-slate-700 mt-2">margem mensal · arraste para ver todos os meses →</div>
             </div>
           </div>
 
@@ -989,7 +1060,7 @@ function Calculadora() {
                 Cada mês de espera ={' '}
                 <Tip pos="top"
                   title="Oportunidade perdida"
-                  text={`É a margem líquida mensal que você deixa de ganhar enquanto não está operando com a Helena. Baseado na sua configuração atual: ${brl(recTotal)} de receita − ${brl(custoMensal)} de custos.`}>
+                  text={`É a margem mensal que você deixa de ganhar enquanto não está operando com a Helena. Baseado na sua configuração atual: ${brl(recTotal)} de receita − ${brl(custoMensal)} de custos.`}>
                   <span className="font-900 text-red-300">{brl(perdidoMes)}</span>
                 </Tip>
                 {' '}deixados na mesa
