@@ -147,13 +147,11 @@ function AnimNum({ value, prefix='', suffix='', className='' }) {
   return <span className={className}>{prefix}{num(display)}{suffix}</span>;
 }
 
-/* ─── Stacked bar chart + linha de custo ──── */
+/* ─── Stacked bar chart + barras de custo paralelas ──── */
 function Chart({ data, breakEvenMonth }) {
   const maxReceita = Math.max(...data.map(d=>d.mrr+d.impl+d.sup+(d.insta||0)), 1);
   const maxCusto   = Math.max(...data.map(d=>d.custo||0), 1);
   const maxVal     = Math.max(maxReceita, maxCusto);
-  // pontos da linha de custo (em % da altura)
-  const custoPts   = data.map((d,i)=>({ x:i, y: 100 - (d.custo/maxVal)*100 }));
   return (
     <div className="relative">
       <div className="flex items-end gap-[3px] h-28 relative">
@@ -162,40 +160,36 @@ function Chart({ data, breakEvenMonth }) {
           const pI = (d.impl/maxVal)*100;
           const pS = (d.sup/maxVal)*100;
           const pN = ((d.insta||0)/maxVal)*100;
+          const pCusto = (d.custo/maxVal)*100;
           const isBE = i+1 === breakEvenMonth;
           const isLast = i===data.length-1;
+          const totalReceita = pM+pI+pS+pN;
           return (
             <div key={i} className="flex-1 flex flex-col justify-end h-full relative group">
               {isBE && (
                 <div className="absolute left-1/2 -translate-x-1/2 z-20 whitespace-nowrap pointer-events-none"
-                     style={{bottom:`calc(${pM+pI+pS+pN}% + 4px)`}}>
+                     style={{bottom:`calc(${Math.max(totalReceita,pCusto)}% + 4px)`}}>
                   <div className="bg-g-400 text-brand-dark text-[9px] font-800 px-1.5 py-0.5 rounded-full shadow-md">✓ Parcelas quitadas</div>
                 </div>
               )}
-              {pS>0&&<div className={`bar w-full ${isLast?'bg-cyan-400/80':'bg-cyan-700/50'}`} style={{height:`${pS}%`,animationDelay:`${i*28}ms`}}/>}
-              {pN>0&&<div className="bar w-full" style={{height:`${pN}%`,animationDelay:`${i*28+4}ms`,background:isLast?'#E879F9':'rgba(232,121,249,.4)'}}/>}
-              {pI>0&&<div className={`bar w-full ${isLast?'bg-g-lime/90':'bg-g-lime/35'}`} style={{height:`${pI}%`,animationDelay:`${i*28+8}ms`}}/>}
-              {pM>0&&<div className={`bar w-full rounded-t-sm ${isLast||isBE?'bg-g-400':'bg-g-600/70'}`} style={{height:`${pM}%`,animationDelay:`${i*28+16}ms`}}/>}
+              {/* Container das 2 barras lado a lado */}
+              <div className="flex items-end gap-[1px] h-full">
+                {/* Barra de RECEITA (esquerda, verde empilhada) */}
+                <div className="flex-1 flex flex-col justify-end h-full">
+                  {pS>0&&<div className={`bar w-full ${isLast?'bg-cyan-400/80':'bg-cyan-700/50'}`} style={{height:`${pS}%`,animationDelay:`${i*28}ms`}}/>}
+                  {pN>0&&<div className="bar w-full" style={{height:`${pN}%`,animationDelay:`${i*28+4}ms`,background:isLast?'#E879F9':'rgba(232,121,249,.4)'}}/>}
+                  {pI>0&&<div className={`bar w-full ${isLast?'bg-g-lime/90':'bg-g-lime/35'}`} style={{height:`${pI}%`,animationDelay:`${i*28+8}ms`}}/>}
+                  {pM>0&&<div className={`bar w-full rounded-t-sm ${isLast||isBE?'bg-g-400':'bg-g-600/70'}`} style={{height:`${pM}%`,animationDelay:`${i*28+16}ms`}}/>}
+                </div>
+                {/* Barra de CUSTO (direita, vermelha) */}
+                <div className="flex-1 flex flex-col justify-end h-full">
+                  {pCusto>0&&<div className="bar w-full rounded-t-sm"
+                    style={{height:`${pCusto}%`, background: isLast?'rgba(239,68,68,.65)':'rgba(239,68,68,.4)', animationDelay:`${i*28+20}ms`}}/>}
+                </div>
+              </div>
             </div>
           );
         })}
-        {/* Linha de custo sobreposta */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none" viewBox={`0 0 ${data.length} 100`}>
-          <polyline
-            fill="none"
-            stroke="#EF4444"
-            strokeWidth="0.4"
-            strokeDasharray="1,0.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-            style={{strokeWidth:'2px'}}
-            points={custoPts.map(p=>`${p.x+0.5},${p.y}`).join(' ')}
-          />
-          {custoPts.map((p,i)=>(
-            <circle key={i} cx={p.x+0.5} cy={p.y} r="0.18" fill="#EF4444"/>
-          ))}
-        </svg>
       </div>
       <div className="flex gap-[3px] mt-1">
         {data.map((_,i)=><div key={i} className="flex-1 text-center text-[9px] text-slate-700">{MONTHS[i]}</div>)}
@@ -203,7 +197,7 @@ function Chart({ data, breakEvenMonth }) {
       {/* Legenda */}
       <div className="flex items-center justify-center gap-4 mt-2 text-[10px] text-slate-500">
         <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-g-400"/>Receita</span>
-        <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-px" style={{borderTop:'1.5px dashed #EF4444'}}/>Custo total</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm" style={{background:'rgba(239,68,68,.5)'}}/>Custo total</span>
       </div>
     </div>
   );
@@ -861,32 +855,32 @@ function Calculadora() {
             <Chart data={projecao} breakEvenMonth={paybackMes}/>
 
             {/* ── Cards-resumo de custos ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
-              <div className="rounded-lg border px-3 py-2.5"
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
+              <div className="rounded-lg border px-3.5 py-3"
                 style={{background:'rgba(239,68,68,.05)',borderColor:'rgba(239,68,68,.2)'}}>
-                <div className="text-[9px] uppercase tracking-wider text-slate-500">Meses 1{parcelas>1?`–${parcelas}`:''}</div>
-                <div className="text-base font-800 text-red-400 mt-0.5">{brl(custoDurante)}<span className="text-[10px] text-red-400/60">/mês</span></div>
-                <div className="text-[9px] text-slate-600 mt-0.5">{parcelas>1?'durante parcelamento':'à vista no mês 1'}</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses 1{parcelas>1?`–${parcelas}`:''}</div>
+                <div className="text-lg font-800 text-red-400 mt-1">{brl(custoDurante)}<span className="text-[10px] text-red-400/60 font-600">/mês</span></div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas>1?'durante parcelamento':'à vista no mês 1'}</div>
               </div>
-              <div className="rounded-lg border px-3 py-2.5"
+              <div className="rounded-lg border px-3.5 py-3"
                 style={{background:'rgba(0,209,94,.05)',borderColor:'rgba(0,209,94,.2)'}}>
-                <div className="text-[9px] uppercase tracking-wider text-slate-500">Meses {Math.min(parcelas+1,12)}–12</div>
-                <div className="text-base font-800 text-g-400 mt-0.5">{brl(custoApos)}<span className="text-[10px] text-g-400/60">/mês</span></div>
-                <div className="text-[9px] text-slate-600 mt-0.5">{parcelas<12?'após quitação da implantação':'parcelamento dura 12 meses'}</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses {Math.min(parcelas+1,12)}–12</div>
+                <div className="text-lg font-800 text-g-400 mt-1">{brl(custoApos)}<span className="text-[10px] text-g-400/60 font-600">/mês</span></div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas<12?'após quitação da implantação':'parcelamento dura 12 meses'}</div>
               </div>
-              <div className="rounded-lg border px-3 py-2.5"
+              <div className="rounded-lg border px-3.5 py-3"
                 style={{background:'rgba(255,255,255,.02)',borderColor:'rgba(255,255,255,.08)'}}>
-                <div className="text-[9px] uppercase tracking-wider text-slate-500">Investimento 12m</div>
-                <div className="text-base font-800 text-slate-200 mt-0.5">{brl(investimento12)}</div>
-                <div className="text-[9px] text-slate-600 mt-0.5">total de custos</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Investimento 12m</div>
+                <div className="text-lg font-800 text-slate-200 mt-1">{brl(investimento12)}</div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">total de custos</div>
               </div>
-              <div className="rounded-lg border px-3 py-2.5"
+              <div className="rounded-lg border px-3.5 py-3"
                 style={{background:'rgba(216,245,88,.05)',borderColor:'rgba(216,245,88,.25)'}}>
-                <div className="text-[9px] uppercase tracking-wider text-slate-500">Break-even</div>
-                <div className="text-base font-800 mt-0.5" style={{color:breakEvenMes?'#D8F558':'#64748B'}}>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Break-even</div>
+                <div className="text-lg font-800 mt-1" style={{color:breakEvenMes?'#D8F558':'#64748B'}}>
                   {breakEvenMes ? `Mês ${breakEvenMes}` : 'Após 12m'}
                 </div>
-                <div className="text-[9px] text-slate-600 mt-0.5">{breakEvenMes ? 'recupera investimento' : 'não recupera em 12m'}</div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{breakEvenMes ? 'recupera investimento' : 'não recupera em 12m'}</div>
               </div>
             </div>
 
