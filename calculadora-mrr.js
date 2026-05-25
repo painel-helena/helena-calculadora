@@ -7,10 +7,6 @@ const CUSTO_DOMINIO_PRO = 190.00;            // domínio próprio Pro (opcional)
 const CUSTO_APP_PREMIUM = 900.00;            // mensalidade do App Premium (obrigatório)
 const CUSTO_LICENCA     = { base: 149.90, ia: 199.90 }; // repasse por cliente/mês
 const TAXA_SETUP        = { pro: 4900, premium: 7900 };  // implantação (parcelável)
-const CUSTO_ZAPI        = 69.90;             // Z-API por cliente/mês (opcional)
-const CUSTO_INSTA       = 99.90;             // Instagram Direct por cliente/mês (opcional)
-const CUSTO_USUARIO     = 19.90;             // legado (não usado mais — ver faixa progressiva)
-const CUSTO_CANAL       = 29.90;             // legado (não usado mais — ver faixa progressiva)
 const CUSTO_IA_AGENTE   = 50.00;             // custo Helena por agente de IA extra/cliente/mês
 
 /* ─── Custo progressivo por faixa ──────── */
@@ -169,7 +165,7 @@ function AnimNum({ value, prefix='', suffix='', className='' }) {
 
 /* ─── Bar chart: receita verde + gap vermelho quando custo > receita ──── */
 function Chart({ data, breakEvenMonth }) {
-  const totReceita = (d) => d.mrr + d.impl + d.sup + (d.insta||0);
+  const totReceita = (d) => d.mrr + d.impl + d.sup;
   const maxAltura  = Math.max(...data.map(d => Math.max(totReceita(d), d.custo||0)), 1);
   return (
     <div className="relative">
@@ -186,7 +182,7 @@ function Chart({ data, breakEvenMonth }) {
           const pM = receita > 0 ? (d.mrr/receita)*pReceita : 0;
           const pI = receita > 0 ? (d.impl/receita)*pReceita : 0;
           const pS = receita > 0 ? (d.sup/receita)*pReceita : 0;
-          const pN = receita > 0 ? ((d.insta||0)/receita)*pReceita : 0;
+          const pN = 0; // insta removido
           const isBE = i+1 === breakEvenMonth;
           const isLast = i===data.length-1;
           const negativo = custo > receita;
@@ -269,25 +265,19 @@ function Calculadora() {
   const [licenca,     setLicenca]     = useState('base');
   const [querDominio, setQuerDominio] = useState(false); // Pro: quer domínio próprio?
   const [parcelas,    setParcelas]    = useState(10);    // parcelamento da implantação
-  const [zapi,        setZapi]        = useState(false);
   const [clientes,    setClientes]    = useState(8);
   const [novos,       setNovos]       = useState(3);
   const [ticketCRM,   setTicketCRM]   = useState(500);
   const [vendeIA,     setVendeIA]     = useState(false);
   const [qtdIA,       setQtdIA]       = useState(1);      // quantidade de agentes extras por cliente
-  const [ticketIA,    setTicketIA]    = useState(200);   // legado (não usado mais)
   const [cobraImpl,   setCobraImpl]   = useState(false);
   const [valorImpl,   setValorImpl]   = useState(2500);
   const [cobraSup,    setCobraSup]    = useState(false);
   const [ticketSup,   setTicketSup]   = useState(200);
-  const [vendeInsta,  setVendeInsta]  = useState(false);
-  const [ticketInsta, setTicketInsta] = useState(200);
   const [vendeUsers,  setVendeUsers]  = useState(false);
   const [extraUsers,  setExtraUsers]  = useState(2);     // qtd de usuários extras por cliente
-  const [ticketUser,  setTicketUser]  = useState(30);    // o que a agência cobra por usuário extra
   const [vendeCanais, setVendeCanais] = useState(false);
   const [extraCanais, setExtraCanais] = useState(1);     // qtd de canais extras por cliente
-  const [ticketCanal, setTicketCanal] = useState(50);    // o que a agência cobra por canal extra
 
   /* ─ Form ─ */
   const [step,       setStep]       = useState(0); // 0=cta, 1=form, 2=sent
@@ -304,29 +294,20 @@ function Calculadora() {
   const custoFixoTotal  = custoFixo + parcelaSetup;                    // custo fixo COM parcela (durante pagamento)
 
   const custoLic         = CUSTO_LICENCA[licenca];
-  const custoConn        = zapi ? CUSTO_ZAPI : 0;
-  const custoInstaCli    = vendeInsta  ? CUSTO_INSTA : 0;
   const custoExtraUsers  = vendeUsers  ? custoUsuariosExtras(extraUsers) : 0;
   const custoExtraCanais = vendeCanais ? custoCanaisExtras(extraCanais)  : 0;
-  const custoExtraIA     = vendeIA     ? qtdIA * CUSTO_IA_AGENTE          : 0; // R$50 × qtd agentes extras
-  const custoPorCli      = custoLic + custoConn + custoInstaCli + custoExtraUsers + custoExtraCanais + custoExtraIA;
+  const custoExtraIA     = vendeIA     ? qtdIA * CUSTO_IA_AGENTE         : 0; // R$50 × qtd agentes extras
+  const custoPorCli      = custoLic + custoExtraUsers + custoExtraCanais + custoExtraIA;
 
-  const recExtraUsers  = 0; // usuários extras viraram só custo (não receita)
-  const recExtraCanais = 0; // canais extras viraram só custo (não receita)
-  const recExtraIA     = 0; // agentes extras viraram só custo (parceiro repassa via ticket do CRM)
-  const recPorCli      = ticketCRM + (cobraSup?ticketSup:0) + (vendeInsta?ticketInsta:0);
+  const recPorCli       = ticketCRM + (cobraSup ? ticketSup : 0);
   const margemPorCli    = recPorCli - custoPorCli;
   const breakeven       = margemPorCli > 0 ? Math.ceil(custoFixoTotal / margemPorCli) : null;
 
   const custoMensal     = custoFixoTotal + custoPorCli * clientes;     // custo mensal atual (com parcela)
   const mrrBase         = ticketCRM * clientes;
-  const mrrIA           = 0; // IA virou só custo, não gera receita
-  const mrrSup          = cobraSup   ? ticketSup   * clientes : 0;
-  const mrrInsta        = vendeInsta ? ticketInsta * clientes : 0;
-  const mrrUsers        = vendeUsers  ? recExtraUsers  * clientes : 0;
-  const mrrCanais       = vendeCanais ? recExtraCanais * clientes : 0;
-  const recImpl         = cobraImpl  ? valorImpl * novos : 0;
-  const recTotal        = mrrBase + mrrIA + mrrSup + mrrInsta + mrrUsers + mrrCanais + recImpl;
+  const mrrSup          = cobraSup ? ticketSup * clientes : 0;
+  const recImpl         = cobraImpl ? valorImpl * novos : 0;
+  const recTotal        = mrrBase + mrrSup + recImpl;
   const margemMensal    = recTotal - custoMensal;
   const margemPct       = recTotal > 0 ? (margemMensal/recTotal)*100 : 0;
 
@@ -344,17 +325,16 @@ function Calculadora() {
   const projecao = useMemo(() => {
     let cumMargem = 0;
     return Array.from({length:12}, (_,i) => {
-      const cli    = clamp(clientes + novos*(i+1), 0, 500);
-      const mrr    = ticketCRM * cli;
-      const insta  = vendeInsta ? ticketInsta*cli : 0;
-      const sup    = cobraSup  ? ticketSup*cli : 0;
-      const impl   = cobraImpl ? valorImpl*novos : 0;
+      const cli      = clamp(clientes + novos*(i+1), 0, 500);
+      const mrr      = ticketCRM * cli;
+      const sup      = cobraSup  ? ticketSup * cli : 0;
+      const impl     = cobraImpl ? valorImpl * novos : 0;
       const custoMes = ((i+1) <= parcelas ? custoFixoTotal : custoFixo) + custoPorCli*cli;
-      const margem = mrr+insta+sup+impl - custoMes;
+      const margem   = mrr + sup + impl - custoMes;
       cumMargem += margem;
-      return { mes:i+1, mrr, impl, sup, insta, custo:custoMes, margem, cli, cumMargem };
+      return { mes:i+1, mrr, impl, sup, custo:custoMes, margem, cli, cumMargem };
     });
-  }, [clientes,novos,ticketCRM,vendeIA,ticketIA,cobraImpl,valorImpl,cobraSup,ticketSup,vendeInsta,ticketInsta,vendeUsers,recExtraUsers,vendeCanais,recExtraCanais,custoFixo,custoFixoTotal,custoPorCli,parcelas]);
+  }, [clientes, novos, ticketCRM, cobraImpl, valorImpl, cobraSup, ticketSup, custoFixo, custoFixoTotal, custoPorCli, parcelas]);
 
   const acum12         = projecao.reduce((s,d)=>s+d.margem,0);
   const ganhoLiquido12 = acum12;   // parcelas já embutidas nos custos mensais
@@ -421,18 +401,21 @@ function Calculadora() {
       /* ── Dados da simulação (disponíveis em $json.body.* no n8n) ── */
       plano,
       licenca,
+      parcelas,
+      quer_dominio:      querDominio,
       clientes,
       novos_por_mes:     novos,
       mensalidade_crm:   ticketCRM,
       vende_ia:          vendeIA,
-      mensalidade_ia:    vendeIA ? ticketIA : 0,
+      qtd_agentes_ia:    vendeIA ? qtdIA : 0,
+      vende_usuarios:    vendeUsers,
+      qtd_usuarios:      vendeUsers ? extraUsers : 0,
+      vende_canais:      vendeCanais,
+      qtd_canais:        vendeCanais ? extraCanais : 0,
       cobra_implantacao: cobraImpl,
       valor_implantacao: cobraImpl ? valorImpl : 0,
       cobra_suporte:     cobraSup,
       mensalidade_sup:   cobraSup ? ticketSup : 0,
-      vende_instagram:   vendeInsta,
-      mensalidade_insta: vendeInsta ? ticketInsta : 0,
-      usa_zapi:          zapi,
       lucro_mensal_atual: margemMensal,
       lucro_liquido_12m:  ganhoLiquido12,
       mes_recuperacao:    paybackMes ?? 'não calculado',
@@ -544,16 +527,16 @@ function Calculadora() {
                 </div>
                 <div className="self-center text-slate-700 text-xl">→</div>
                 <div className="flex-1 rounded-xl border px-4 py-3 text-center transition-all"
-                  style={{background:abaixoMinimo?'rgba(239,68,68,.07)':`${ticketCol}10`, borderColor:abaixoMinimo?'rgba(239,68,68,.25)':`${ticketCol}30`}}>
+                  style={{background:margemMensal<0?'rgba(239,68,68,.07)':`${ticketCol}10`, borderColor:margemMensal<0?'rgba(239,68,68,.25)':`${ticketCol}30`}}>
                   <Tip pos="left"
-                    title="Lucro mensal"
-                    text={`(Seu ticket − mínimo necessário) × clientes ativos. É o que sobra no final do mês depois de pagar todos os custos da plataforma e das licenças.`}>
-                    <div className="text-[10px] text-slate-500 mb-0.5">Lucro/mês hoje</div>
+                    title="Lucro mensal hoje"
+                    text={`Receita total mensal (${brl(recTotal)}) menos custos com a Helena (${brl(custoMensal)}). É o que sobra todo mês com a sua base atual de ${clientes} cliente${clientes!==1?'s':''}, durante o parcelamento da implantação.`}>
+                    <div className="text-[10px] text-slate-500 mb-0.5">Lucro no 1º mês</div>
                   </Tip>
-                  <div className="text-2xl font-900 transition-all" style={{color:abaixoMinimo?'#EF4444':ticketCol}}>
-                    {abaixoMinimo ? `−${brl(Math.abs(lucroMensal))}` : brl(lucroMensal)}
+                  <div className="text-2xl font-900 transition-all" style={{color:margemMensal<0?'#EF4444':ticketCol}}>
+                    {margemMensal<0 ? `−${brl(Math.abs(margemMensal))}` : brl(margemMensal)}
                   </div>
-                  <div className="text-[10px] font-700 mt-0.5" style={{color:abaixoMinimo?'#EF444488':`${ticketCol}99`}}>
+                  <div className="text-[10px] font-700 mt-0.5" style={{color:margemMensal<0?'#EF444488':`${ticketCol}99`}}>
                     {ticketLbl}
                   </div>
                   <div className="text-[9px] text-slate-500 mt-1.5 leading-tight">
@@ -863,9 +846,6 @@ function Calculadora() {
               {cobraSup&&<div className="flex items-center gap-1.5 text-[10px] text-slate-500">
                 <span className="w-2.5 h-2.5 rounded-sm bg-cyan-500"/>Suporte
               </div>}
-              {vendeInsta&&<div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                <span className="w-2.5 h-2.5 rounded-sm" style={{background:'#E879F9'}}/>Instagram
-              </div>}
             </div>
             <Chart data={projecao} breakEvenMonth={paybackMes}/>
 
@@ -873,15 +853,15 @@ function Calculadora() {
             <div className="grid grid-cols-2 gap-2.5 mt-4">
               <div className="rounded-lg border px-3.5 py-3"
                 style={{background:'rgba(239,68,68,.05)',borderColor:'rgba(239,68,68,.2)'}}>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses 1{parcelas>1?`–${parcelas}`:''}</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">{parcelas>1?`Custo médio · Meses 1–${parcelas}`:'Custo · Mês 1'}</div>
                 <div className="text-lg font-800 text-red-400 mt-1">{brl(custoDurante)}<span className="text-[10px] text-red-400/60 font-600">/mês</span></div>
-                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas>1?'custo com a Helena durante parcelamento':'custo único + 1 mês'}</div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas>1?`com a parcela da implantação (${parcelas}x)`:'implantação paga à vista no mês 1'}</div>
               </div>
               <div className="rounded-lg border px-3.5 py-3"
                 style={{background:'rgba(0,209,94,.05)',borderColor:'rgba(0,209,94,.2)'}}>
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses {Math.min(parcelas+1,12)}–12</div>
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Resultado médio · Meses {Math.min(parcelas+1,12)}–12</div>
                 <div className={`text-lg font-800 mt-1 ${margemLivrePos>=0?'text-g-400':'text-red-400'}`}>{margemLivrePos>=0?'+':''}{brl(margemLivrePos)}<span className={`text-[10px] font-600 ${margemLivrePos>=0?'text-g-400/60':'text-red-400/60'}`}>/mês</span></div>
-                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas<12?'margem livre após pagar tudo':'parcelamento dura 12 meses'}</div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas<12?'após quitar implantação':'parcelamento dura 12 meses'}</div>
               </div>
             </div>
 
@@ -925,11 +905,7 @@ function Calculadora() {
                 title="Receita total do mês"
                 text={
                   'Receitas ativas: CRM (' + brl(mrrBase) + ')' +
-                  (vendeIA    ? ' + IA (' + brl(mrrIA) + ')'                 : '') +
                   (cobraSup   ? ' + Suporte (' + brl(mrrSup) + ')'           : '') +
-                  (vendeInsta ? ' + Instagram (' + brl(mrrInsta) + ')'       : '') +
-                  (vendeUsers ? ' + Usuários extras (' + brl(mrrUsers) + ')' : '') +
-                  (vendeCanais? ' + Canais extras (' + brl(mrrCanais) + ')'  : '') +
                   (cobraImpl  ? ' + Implantações (' + brl(recImpl) + ')'     : '') +
                   '. Total: ' + brl(recTotal) + '/mês.'
                 }>
@@ -941,11 +917,7 @@ function Calculadora() {
               <div className="flex gap-1 mt-1.5 justify-center flex-wrap">
                 {[
                   { v:mrrBase,  c:'#00D15E', l:'CRM' },
-                  ...(vendeIA    ?[{ v:mrrIA,    c:'#4ADE80', l:'IA'     }]:[]),
                   ...(cobraSup   ?[{ v:mrrSup,   c:'#22D3EE', l:'Sup'    }]:[]),
-                  ...(vendeInsta ?[{ v:mrrInsta, c:'#E879F9', l:'Insta'  }]:[]),
-                  ...(vendeUsers ?[{ v:mrrUsers, c:'#818CF8', l:'Users'  }]:[]),
-                  ...(vendeCanais?[{ v:mrrCanais,c:'#FBBF24', l:'Canais' }]:[]),
                   ...(cobraImpl  ?[{ v:recImpl,  c:'#D8F558', l:'Impl'   }]:[]),
                 ].map(s=>(
                   <span key={s.l} className="text-[9px] font-700 px-1.5 py-0.5 rounded-full"
@@ -1126,8 +1098,8 @@ function Calculadora() {
                   <div className="text-g-400 font-700 mb-1">{tier.glyph} {tier.label}</div>
                   <div>Plano <strong className="text-slate-300">{plano==='pro'?'Pro':'Premium'}</strong> · {clientes} clientes ativos · +{novos}/mês</div>
                   <div>Lucro 12m: <strong className="text-g-400">{brl(ganhoLiquido12)}</strong>{paybackMes&&<span> · Recupera no mês <strong className="text-amber-400">{paybackMes}</strong></span>}</div>
-                  {(vendeIA||cobraSup||cobraImpl||vendeInsta)&&(
-                    <div>{[vendeIA&&'+ IA', cobraSup&&'+ Suporte', cobraImpl&&'+ Implantação', vendeInsta&&'+ Instagram'].filter(Boolean).join(' · ')}</div>
+                  {(vendeIA||cobraSup||cobraImpl||vendeUsers||vendeCanais)&&(
+                    <div>{[vendeIA&&'+ IA', cobraSup&&'+ Suporte', cobraImpl&&'+ Implantação', vendeUsers&&'+ Usuários', vendeCanais&&'+ Canais'].filter(Boolean).join(' · ')}</div>
                   )}
                 </div>
 
