@@ -9,8 +9,28 @@ const CUSTO_LICENCA     = { base: 149.90, ia: 199.90 }; // repasse por cliente/m
 const TAXA_SETUP        = { pro: 4900, premium: 7900 };  // implantação (parcelável)
 const CUSTO_ZAPI        = 69.90;             // Z-API por cliente/mês (opcional)
 const CUSTO_INSTA       = 99.90;             // Instagram Direct por cliente/mês (opcional)
-const CUSTO_USUARIO     = 19.90;             // usuário adicional por cliente/mês
-const CUSTO_CANAL       = 29.90;             // canal adicional por cliente/mês
+const CUSTO_USUARIO     = 19.90;             // legado (não usado mais — ver faixa progressiva)
+const CUSTO_CANAL       = 29.90;             // legado (não usado mais — ver faixa progressiva)
+const CUSTO_IA_AGENTE   = 50.00;             // custo Helena por agente de IA extra/cliente/mês
+
+/* ─── Custo progressivo por faixa ──────── */
+// Usuários adicionais (3 inclusos no plano base):
+//   4-20   → R$ 19,90/usuário | 21-100 → R$ 14,90/usuário | 101+ → R$ 12,90/usuário
+function custoUsuariosExtras(qtd){
+  if(qtd<=0) return 0;
+  const f1 = Math.min(qtd, 17);
+  const f2 = Math.min(Math.max(qtd-17,0), 80);
+  const f3 = Math.max(qtd-97, 0);
+  return f1*19.90 + f2*14.90 + f3*12.90;
+}
+// Canais adicionais (1 incluso no plano base):
+//   2-5  → R$ 29,90/canal | 6+ → R$ 19,90/canal
+function custoCanaisExtras(qtd){
+  if(qtd<=0) return 0;
+  const f1 = Math.min(qtd, 4);
+  const f2 = Math.max(qtd-4, 0);
+  return f1*29.90 + f2*19.90;
+}
 const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
 /* ─── Helpers ────────────────────────── */
@@ -254,7 +274,8 @@ function Calculadora() {
   const [novos,       setNovos]       = useState(3);
   const [ticketCRM,   setTicketCRM]   = useState(500);
   const [vendeIA,     setVendeIA]     = useState(false);
-  const [ticketIA,    setTicketIA]    = useState(200);
+  const [qtdIA,       setQtdIA]       = useState(1);      // quantidade de agentes extras por cliente
+  const [ticketIA,    setTicketIA]    = useState(200);   // legado (não usado mais)
   const [cobraImpl,   setCobraImpl]   = useState(false);
   const [valorImpl,   setValorImpl]   = useState(2500);
   const [cobraSup,    setCobraSup]    = useState(false);
@@ -285,19 +306,21 @@ function Calculadora() {
   const custoLic         = CUSTO_LICENCA[licenca];
   const custoConn        = zapi ? CUSTO_ZAPI : 0;
   const custoInstaCli    = vendeInsta  ? CUSTO_INSTA : 0;
-  const custoExtraUsers  = vendeUsers  ? extraUsers  * CUSTO_USUARIO : 0;
-  const custoExtraCanais = vendeCanais ? extraCanais * CUSTO_CANAL   : 0;
-  const custoPorCli      = custoLic + custoConn + custoInstaCli + custoExtraUsers + custoExtraCanais; // repasse por cliente/mês
+  const custoExtraUsers  = vendeUsers  ? custoUsuariosExtras(extraUsers) : 0;
+  const custoExtraCanais = vendeCanais ? custoCanaisExtras(extraCanais)  : 0;
+  const custoExtraIA     = vendeIA     ? qtdIA * CUSTO_IA_AGENTE          : 0; // R$50 × qtd agentes extras
+  const custoPorCli      = custoLic + custoConn + custoInstaCli + custoExtraUsers + custoExtraCanais + custoExtraIA;
 
-  const recExtraUsers  = vendeUsers  ? extraUsers  * ticketUser  : 0;
-  const recExtraCanais = vendeCanais ? extraCanais * ticketCanal : 0;
-  const recPorCli      = ticketCRM + (vendeIA?ticketIA:0) + (cobraSup?ticketSup:0) + (vendeInsta?ticketInsta:0) + recExtraUsers + recExtraCanais;
+  const recExtraUsers  = 0; // usuários extras viraram só custo (não receita)
+  const recExtraCanais = 0; // canais extras viraram só custo (não receita)
+  const recExtraIA     = 0; // agentes extras viraram só custo (parceiro repassa via ticket do CRM)
+  const recPorCli      = ticketCRM + (cobraSup?ticketSup:0) + (vendeInsta?ticketInsta:0);
   const margemPorCli    = recPorCli - custoPorCli;
   const breakeven       = margemPorCli > 0 ? Math.ceil(custoFixoTotal / margemPorCli) : null;
 
   const custoMensal     = custoFixoTotal + custoPorCli * clientes;     // custo mensal atual (com parcela)
   const mrrBase         = ticketCRM * clientes;
-  const mrrIA           = vendeIA    ? ticketIA    * clientes : 0;
+  const mrrIA           = 0; // IA virou só custo, não gera receita
   const mrrSup          = cobraSup   ? ticketSup   * clientes : 0;
   const mrrInsta        = vendeInsta ? ticketInsta * clientes : 0;
   const mrrUsers        = vendeUsers  ? recExtraUsers  * clientes : 0;
@@ -322,7 +345,7 @@ function Calculadora() {
     let cumMargem = 0;
     return Array.from({length:12}, (_,i) => {
       const cli    = clamp(clientes + novos*(i+1), 0, 500);
-      const mrr    = (ticketCRM+(vendeIA?ticketIA:0)+recExtraUsers+recExtraCanais) * cli;
+      const mrr    = ticketCRM * cli;
       const insta  = vendeInsta ? ticketInsta*cli : 0;
       const sup    = cobraSup  ? ticketSup*cli : 0;
       const impl   = cobraImpl ? valorImpl*novos : 0;
@@ -612,30 +635,19 @@ function Calculadora() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-700 text-slate-100">Agentes de IA</span>
-                        <span className="text-[9px] font-700 px-1.5 py-0.5 rounded-full" style={{background:'rgba(74,222,128,.1)',color:'#4ADE80',border:'1px solid rgba(74,222,128,.2)'}}>100% seu</span>
                       </div>
-                      <div className="text-xs text-slate-500">Cobrado junto ao CRM ou como serviço separado — você define o modelo</div>
+                      <div className="text-xs text-slate-500">Além do agente incluso na licença Base + IA</div>
                     </div>
                   </div>
                   <Sw checked={vendeIA} onChange={setVendeIA}/>
                 </div>
                 {vendeIA&&(
                   <div className="mt-3 pt-3 border-t border-brand-border/40 fu">
-                    <Slider min={50} max={600} step={25} value={ticketIA} onChange={setTicketIA}
-                      fmtL={brl} fmtR={brl} fmtV={v=>`+ ${brl(v)}/cliente/mês`} accent="#4ADE80"/>
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
-                      <span className="text-slate-500">
-                        Receita adicional:{' '}
-                        <span className="font-700 text-g-300">+{brl(ticketIA)}/cliente/mês</span>
-                      </span>
-                      {clientes>0&&(
-                        <span className="text-slate-500">
-                          Total: <span className="text-g-300 font-700">+{brl(ticketIA*clientes)}/mês</span>
-                        </span>
-                      )}
-                    </div>
+                    <div className="text-[11px] text-slate-500 mb-1">Quantos agentes extras você quer disponibilizar por cliente</div>
+                    <Slider min={1} max={10} step={1} value={qtdIA} onChange={setQtdIA}
+                      fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} agente${v>1?'s':''} extra${v>1?'s':''}`} accent="#4ADE80"/>
                     <div className="mt-2 rounded-lg px-2.5 py-1.5 text-[10px] text-g-300/70 border border-g-400/15" style={{background:'rgba(0,209,94,.05)'}}>
-                      💡 A IA está inclusa na licença Base + IA (R$199,90/cli). Você pode embutir no ticket do CRM <strong>ou</strong> cobrar como linha separada na fatura do cliente — 100% do valor é seu lucro
+                      💡 Custo Helena: <b>R$ 50/agente/cliente/mês</b>. Esse valor é somado aos custos da plataforma — você pode repassar ao cliente ajustando o valor cobrado por cliente.
                     </div>
                   </div>
                 )}
