@@ -27,7 +27,13 @@ function custoCanaisExtras(qtd){
   const f2 = Math.max(qtd-4, 0);
   return f1*29.90 + f2*19.90;
 }
-const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MONTHS_ALL = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+// Retorna os próximos 12 meses começando no mês seguinte ao atual
+function nextMonths() {
+  const start = new Date().getMonth() + 1; // mês atual + 1 (0-indexed → seguinte)
+  return Array.from({length:12}, (_,i) => MONTHS_ALL[(start + i) % 12]);
+}
+const MONTHS = nextMonths();
 
 /* ─── Helpers ────────────────────────── */
 const brl = (v, d=0) => Math.abs(v) < 0.01 ? 'R$ 0' : v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:d});
@@ -339,6 +345,7 @@ function Calculadora() {
   const acum12         = projecao.reduce((s,d)=>s+d.margem,0);
   const ganhoLiquido12 = acum12;   // parcelas já embutidas nos custos mensais
   const marg12         = projecao[11].margem;
+  const marg1          = projecao[0].margem;  // margem real do 1º mês (com novos clientes já entrando)
   const cli12          = projecao[11].cli;
   const impl12         = cobraImpl ? valorImpl*novos*12 : 0;
 
@@ -527,16 +534,16 @@ function Calculadora() {
                 </div>
                 <div className="self-center text-slate-700 text-xl">→</div>
                 <div className="flex-1 rounded-xl border px-4 py-3 text-center transition-all"
-                  style={{background:margemMensal<0?'rgba(239,68,68,.07)':`${ticketCol}10`, borderColor:margemMensal<0?'rgba(239,68,68,.25)':`${ticketCol}30`}}>
+                  style={{background:marg1<0?'rgba(239,68,68,.07)':`${ticketCol}10`, borderColor:marg1<0?'rgba(239,68,68,.25)':`${ticketCol}30`}}>
                   <Tip pos="left"
-                    title="Lucro mensal hoje"
-                    text={`Receita total mensal (${brl(recTotal)}) menos custos com a Helena (${brl(custoMensal)}). É o que sobra todo mês com a sua base atual de ${clientes} cliente${clientes!==1?'s':''}, durante o parcelamento da implantação.`}>
+                    title="Lucro no 1º mês"
+                    text={`Margem projetada no seu primeiro mês de operação: receita de ${projecao[0].cli} cliente${projecao[0].cli!==1?'s':''} (${brl(projecao[0].mrr)}) menos os custos com a Helena (${brl(projecao[0].custo)}). Já inclui parcela da implantação.`}>
                     <div className="text-[10px] text-slate-500 mb-0.5">Lucro no 1º mês</div>
                   </Tip>
-                  <div className="text-2xl font-900 transition-all" style={{color:margemMensal<0?'#EF4444':ticketCol}}>
-                    {margemMensal<0 ? `−${brl(Math.abs(margemMensal))}` : brl(margemMensal)}
+                  <div className="text-2xl font-900 transition-all" style={{color:marg1<0?'#EF4444':ticketCol}}>
+                    {marg1<0 ? `−${brl(Math.abs(marg1))}` : brl(marg1)}
                   </div>
-                  <div className="text-[10px] font-700 mt-0.5" style={{color:margemMensal<0?'#EF444488':`${ticketCol}99`}}>
+                  <div className="text-[10px] font-700 mt-0.5" style={{color:marg1<0?'#EF444488':`${ticketCol}99`}}>
                     {ticketLbl}
                   </div>
                   <div className="text-[9px] text-slate-500 mt-1.5 leading-tight">
