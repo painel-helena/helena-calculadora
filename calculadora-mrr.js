@@ -713,43 +713,11 @@ function Calculadora() {
                     <span className="text-xs font-600 text-slate-300">Domínio próprio</span>
                     <span className="text-[9px] font-700 px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,209,94,.1)',color:'#00D15E',border:'1px solid rgba(0,209,94,.2)'}}>Exclusivo Pro</span>
                   </div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">suamarca.wts.chat → suamarca.com.br · +R$190,00/mês · opcional</div>
+                  <div className="text-[11px] text-slate-600 mt-0.5">suamarca.wts.chat → suamarca.com.br · opcional</div>
                 </div>
                 <Sw checked={querDominio} onChange={setQuerDominio}/>
               </div>
             )}
-
-            {/* Resumo do custo fixo mensal */}
-            <div className="rounded-xl px-4 py-3 mb-4"
-              style={{background:'rgba(0,209,94,.04)',border:'1px solid rgba(0,209,94,.1)'}}>
-              {/* Linha 1: licenciamento fixo */}
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] text-slate-500">
-                  Licenciamento mensal
-                  {plano==='pro'&&querDominio&&<span className="text-slate-600"> + domínio</span>}
-                  {plano==='premium'&&<span className="text-slate-600"> + app premium</span>}
-                </div>
-                <div className="text-sm font-800 text-g-300">{brl(custoFixo)}/mês</div>
-              </div>
-              {/* Linha 2: parcela da implantação (muda com o seletor) */}
-              {parcelas===1 ? (
-                <div className="flex items-center justify-between mt-1.5">
-                  <div className="text-[11px] text-slate-500">Taxa de implantação <span className="text-slate-600">(à vista)</span></div>
-                  <div className="text-sm font-700 text-amber-400">{brl(taxaSetup)} único</div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mt-1.5">
-                    <div className="text-[11px] text-slate-500">Parcela da implantação <span className="text-slate-600">({parcelas}x)</span></div>
-                    <div className="text-sm font-700 text-amber-400">+{brl(parcelaSetup)}/mês</div>
-                  </div>
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-brand-border/30">
-                    <div className="text-[11px] text-slate-400 font-600">Total fixo durante {parcelas} meses</div>
-                    <div className="text-sm font-900 text-g-300">{brl(custoFixoTotal)}/mês</div>
-                  </div>
-                </>
-              )}
-            </div>
 
             <div className="grid grid-cols-2 gap-3">
               {[
@@ -773,29 +741,6 @@ function Calculadora() {
                   ))}
                 </button>
               ))}
-            </div>
-
-            {/* Parcelamento da implantação */}
-            <div className="mt-3 rounded-xl border border-brand-border/40 px-4 py-3"
-              style={{background:'rgba(9,15,12,.6)'}}>
-              <div className="flex items-center justify-between mb-2.5">
-                <div>
-                  <div className="text-xs font-600 text-slate-300">Taxa de implantação</div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">{brl(taxaSetup)} · parcelável em até 10x</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] text-slate-500">Parcela mensal</div>
-                  <div className="text-sm font-800 text-amber-400">{brl(parcelaSetup)}/mês</div>
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] text-slate-500 mb-1.5">Em quantas vezes você quer pagar?</div>
-                <Slider min={1} max={10} step={1} value={parcelas} onChange={setParcelas}
-                  fmtL={v=>'À vista'} fmtR={v=>'10x'} fmtV={v=>v===1?'À vista':`${v}x de ${brl(taxaSetup/v)}`} accent="#EAB308"/>
-              </div>
-              {parcelas>1&&<div className="mt-2 text-[10px] text-slate-600 text-center">
-                {parcelas}x de <span className="text-amber-400 font-700">{brl(parcelaSetup)}</span> · parcelas quitadas no mês <span className="font-700 text-slate-400">{parcelas}</span>
-              </div>}
             </div>
           </div>
 
