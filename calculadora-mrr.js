@@ -227,7 +227,7 @@ function Calculadora() {
   const [plano,       setPlano]       = useState('pro');
   const [licenca,     setLicenca]     = useState('base');
   const [querDominio, setQuerDominio] = useState(false); // Pro: quer domínio próprio?
-  const [parcelas,    setParcelas]    = useState(12);    // parcelamento da implantação
+  const [parcelas,    setParcelas]    = useState(10);    // parcelamento da implantação
   const [zapi,        setZapi]        = useState(false);
   const [clientes,    setClientes]    = useState(8);
   const [novos,       setNovos]       = useState(3);
@@ -321,7 +321,7 @@ function Calculadora() {
   /* quando as parcelas terminam (dentro da janela de 12 meses) */
   const paybackMes  = parcelas <= 12 ? parcelas : null;
 
-  /* ROI: lucro líquido 12m vs total investido na implantação */
+  /* ROI: lucro 12m vs total investido na implantação */
   const roi         = taxaSetup > 0 ? ((ganhoLiquido12/taxaSetup)*100) : 0;
 
   /* Tier baseado no ganho líquido real */
@@ -485,7 +485,7 @@ function Calculadora() {
                 <div className="flex-1 rounded-xl border px-4 py-3 text-center transition-all"
                   style={{background:abaixoMinimo?'rgba(239,68,68,.07)':`${ticketCol}10`, borderColor:abaixoMinimo?'rgba(239,68,68,.25)':`${ticketCol}30`}}>
                   <Tip pos="left"
-                    title="Lucro líquido mensal"
+                    title="Lucro mensal"
                     text={`(Seu ticket − mínimo necessário) × clientes ativos. É o que sobra no final do mês depois de pagar todos os custos da plataforma e das licenças.`}>
                     <div className="text-[10px] text-slate-500 mb-0.5">Lucro/mês hoje</div>
                   </Tip>
@@ -494,6 +494,9 @@ function Calculadora() {
                   </div>
                   <div className="text-[10px] font-700 mt-0.5" style={{color:abaixoMinimo?'#EF444488':`${ticketCol}99`}}>
                     {ticketLbl}
+                  </div>
+                  <div className="text-[9px] text-slate-500 mt-1.5 leading-tight">
+                    ⓘ Já desconta todos os custos da Helena
                   </div>
                 </div>
               </div>
@@ -508,6 +511,65 @@ function Calculadora() {
             {/* Streams */}
             <div className="border-t border-brand-border/40 pt-4 space-y-3">
               <div className="text-xs text-slate-500 font-500">Ative fontes de receita adicionais</div>
+
+              {/* Usuários Adicionais */}
+              <div className={`stream ${vendeUsers?'on':''}`}>
+                <div className="flex items-center justify-between cursor-pointer" onClick={()=>setVendeUsers(v=>!v)}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">👤</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-700 text-slate-100">Usuários Adicionais</span>
+                      </div>
+                      <div className="text-xs text-slate-500">Acima dos 3 usuários inclusos no plano base</div>
+                    </div>
+                  </div>
+                  <Sw checked={vendeUsers} onChange={setVendeUsers}/>
+                </div>
+                {vendeUsers&&(
+                  <div className="mt-3 pt-3 border-t border-brand-border/40 fu space-y-3">
+                    <div>
+                      <div className="text-[11px] text-slate-500 mb-1">Quantos usuários extras você quer disponibilizar</div>
+                      <Slider min={1} max={200} step={1} value={extraUsers} onChange={setExtraUsers}
+                        fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} usuário${v>1?'s':''} extra${v>1?'s':''}`} accent="#818CF8"/>
+                    </div>
+                    <div className="rounded-lg px-2.5 py-1.5 text-[10px] border" style={{background:'rgba(129,140,248,.05)',borderColor:'rgba(129,140,248,.15)',color:'rgba(129,140,248,.7)'}}>
+                      {extraUsers<=17 && <>💡 Faixa atual: <b>R$ 19,90/usuário</b> · Acima de 20 usuários, o valor cai para <b>R$ 14,90</b></>}
+                      {extraUsers>17 && extraUsers<=97 && <>💡 Faixa atual: <b>R$ 14,90/usuário</b> · Acima de 100 usuários, o valor cai para <b>R$ 12,90</b></>}
+                      {extraUsers>97 && <>💡 Faixa atual: <b>R$ 12,90/usuário</b> · Você está no melhor preço!</>}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Canais Adicionais */}
+              <div className={`stream ${vendeCanais?'on':''}`}>
+                <div className="flex items-center justify-between cursor-pointer" onClick={()=>setVendeCanais(v=>!v)}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">📡</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-700 text-slate-100">Canais Adicionais</span>
+                      </div>
+                      <div className="text-xs text-slate-500">WhatsApp ou Direct/Messenger — você define o preço</div>
+                    </div>
+                  </div>
+                  <Sw checked={vendeCanais} onChange={setVendeCanais}/>
+                </div>
+                {vendeCanais&&(
+                  <div className="mt-3 pt-3 border-t border-brand-border/40 fu space-y-3">
+                    <div>
+                      <div className="text-[11px] text-slate-500 mb-1">Quantos canais extras você quer disponibilizar</div>
+                      <Slider min={1} max={20} step={1} value={extraCanais} onChange={setExtraCanais}
+                        fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} canal${v>1?'is':''} extra${v>1?'s':''}`} accent="#FBBF24"/>
+                    </div>
+                    <div className="rounded-lg px-2.5 py-1.5 text-[10px] border" style={{background:'rgba(251,191,36,.05)',borderColor:'rgba(251,191,36,.15)',color:'rgba(251,191,36,.7)'}}>
+                      {extraCanais<=4 && <>💡 Faixa atual: <b>R$ 29,90/canal</b> · Acima de 5 canais, o valor cai para <b>R$ 19,90</b></>}
+                      {extraCanais>4 && <>💡 Faixa atual: <b>R$ 19,90/canal</b> · Você está no melhor preço!</>}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* IA */}
               <div className={`stream ${vendeIA?'on':''}`}>
@@ -609,135 +671,6 @@ function Calculadora() {
                   </div>
                 )}
               </div>
-
-              {/* Usuários Adicionais */}
-              <div className={`stream ${vendeUsers?'on':''}`}>
-                <div className="flex items-center justify-between cursor-pointer" onClick={()=>setVendeUsers(v=>!v)}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">👤</span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-700 text-slate-100">Usuários Adicionais</span>
-                        <span className="text-[9px] font-700 px-1.5 py-0.5 rounded-full" style={{background:'rgba(129,140,248,.1)',color:'#818CF8',border:'1px solid rgba(129,140,248,.2)'}}>Helena: R$19,90/usuário</span>
-                      </div>
-                      <div className="text-xs text-slate-500">Acima dos 3 usuários inclusos — você define o preço</div>
-                    </div>
-                  </div>
-                  <Sw checked={vendeUsers} onChange={setVendeUsers}/>
-                </div>
-                {vendeUsers&&(
-                  <div className="mt-3 pt-3 border-t border-brand-border/40 fu space-y-3">
-                    <div>
-                      <div className="text-[11px] text-slate-500 mb-1">Usuários extras que você oferece por cliente</div>
-                      <Slider min={1} max={10} step={1} value={extraUsers} onChange={setExtraUsers}
-                        fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} usuário${v>1?'s':''} extra${v>1?'s':''}`} accent="#818CF8"/>
-                    </div>
-                    <div>
-                      <div className="text-[11px] text-slate-500 mb-1">Quanto você cobra por usuário adicional/mês</div>
-                      <Slider min={20} max={100} step={5} value={ticketUser} onChange={setTicketUser}
-                        fmtL={brl} fmtR={brl} fmtV={v=>`${brl(v)}/usuário/mês`} accent="#818CF8"/>
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
-                      <span className="text-slate-500">
-                        Seu lucro/usuário:{' '}
-                        <span className={`font-700 ${ticketUser>CUSTO_USUARIO?'text-indigo-400':'text-red-400'}`}>{brl(ticketUser-CUSTO_USUARIO)}/mês</span>
-                      </span>
-                      {clientes>0&&(
-                        <span className="text-slate-500">
-                          Total: <span className="text-indigo-400 font-700">{brl((ticketUser-CUSTO_USUARIO)*extraUsers*clientes)}/mês</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="rounded-lg px-2.5 py-1.5 text-[10px] border" style={{background:'rgba(129,140,248,.05)',borderColor:'rgba(129,140,248,.15)',color:'rgba(129,140,248,.7)'}}>
-                      💡 Helena cobra R$19,90 por usuário extra — o restante é seu lucro
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Canais Adicionais */}
-              <div className={`stream ${vendeCanais?'on':''}`}>
-                <div className="flex items-center justify-between cursor-pointer" onClick={()=>setVendeCanais(v=>!v)}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">📡</span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-700 text-slate-100">Canais Adicionais</span>
-                        <span className="text-[9px] font-700 px-1.5 py-0.5 rounded-full" style={{background:'rgba(251,191,36,.08)',color:'#FBBF24',border:'1px solid rgba(251,191,36,.2)'}}>Helena: R$29,90/canal</span>
-                      </div>
-                      <div className="text-xs text-slate-500">Acima do 1 canal incluso — você define o preço</div>
-                    </div>
-                  </div>
-                  <Sw checked={vendeCanais} onChange={setVendeCanais}/>
-                </div>
-                {vendeCanais&&(
-                  <div className="mt-3 pt-3 border-t border-brand-border/40 fu space-y-3">
-                    <div>
-                      <div className="text-[11px] text-slate-500 mb-1">Canais extras que você oferece por cliente</div>
-                      <Slider min={1} max={5} step={1} value={extraCanais} onChange={setExtraCanais}
-                        fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} canal${v>1?'is':''} extra${v>1?'s':''}`} accent="#FBBF24"/>
-                    </div>
-                    <div>
-                      <div className="text-[11px] text-slate-500 mb-1">Quanto você cobra por canal adicional/mês</div>
-                      <Slider min={30} max={150} step={10} value={ticketCanal} onChange={setTicketCanal}
-                        fmtL={brl} fmtR={brl} fmtV={v=>`${brl(v)}/canal/mês`} accent="#FBBF24"/>
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
-                      <span className="text-slate-500">
-                        Seu lucro/canal:{' '}
-                        <span className={`font-700 ${ticketCanal>CUSTO_CANAL?'text-amber-400':'text-red-400'}`}>{brl(ticketCanal-CUSTO_CANAL)}/mês</span>
-                      </span>
-                      {clientes>0&&(
-                        <span className="text-slate-500">
-                          Total: <span className="text-amber-400 font-700">{brl((ticketCanal-CUSTO_CANAL)*extraCanais*clientes)}/mês</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="rounded-lg px-2.5 py-1.5 text-[10px] border" style={{background:'rgba(251,191,36,.05)',borderColor:'rgba(251,191,36,.15)',color:'rgba(251,191,36,.7)'}}>
-                      💡 Helena cobra R$29,90 por canal extra — o restante é seu lucro
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Instagram & Messenger */}
-              <div className={`stream ${vendeInsta?'on':''}`}>
-                <div className="flex items-center justify-between cursor-pointer" onClick={()=>setVendeInsta(v=>!v)}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">📸</span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-700 text-slate-100">Instagram & Messenger</span>
-                        <span className="text-[9px] font-700 px-1.5 py-0.5 rounded-full" style={{background:'rgba(232,121,249,.1)',color:'#E879F9',border:'1px solid rgba(232,121,249,.2)'}}>Helena: R$99,90/cli</span>
-                      </div>
-                      <div className="text-xs text-slate-500">Você define o preço — mínimo para cobrir o custo é R$99,90/cliente</div>
-                    </div>
-                  </div>
-                  <Sw checked={vendeInsta} onChange={setVendeInsta}/>
-                </div>
-                {vendeInsta&&(
-                  <div className="mt-3 pt-3 border-t border-brand-border/40 fu">
-                    <Slider min={100} max={600} step={10} value={ticketInsta} onChange={setTicketInsta}
-                      fmtL={brl} fmtR={brl} fmtV={v=>`+ ${brl(v)}/cliente/mês`} accent="#E879F9"/>
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
-                      <span className="text-slate-500">
-                        Seu lucro/cliente:{' '}
-                        <span className={`font-700 ${ticketInsta>CUSTO_INSTA?'text-fuchsia-400':'text-red-400'}`}>
-                          {brl(ticketInsta-CUSTO_INSTA)}/mês
-                        </span>
-                      </span>
-                      {clientes>0&&(
-                        <span className="text-slate-500">
-                          Total: <span className="text-fuchsia-400 font-700">{brl((ticketInsta-CUSTO_INSTA)*clientes)}/mês</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-2 rounded-lg px-2.5 py-1.5 text-[10px] text-fuchsia-300/70 border border-fuchsia-500/15" style={{background:'rgba(232,121,249,.05)'}}>
-                      💡 Custo da integração (R$99,90/cliente) já descontado — o restante é seu lucro
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
@@ -749,11 +682,9 @@ function Calculadora() {
             <div className="grid grid-cols-2 gap-3 mb-3">
               {[
                 { v:'pro',     icon:'🌐', label:'Pro',
-                  feat:['Aplicativo genérico Helena','Domínio: suamarca.wts.chat','Sem custo de desenvolvimento'],
-                  preco:`R$659,90/mês` },
+                  feat:['Aplicativo genérico Helena','Domínio: suamarca.wts.chat','Sem custo de desenvolvimento'] },
                 { v:'premium', icon:'📱', label:'Premium',
-                  feat:['Aplicativo 100% white label','Domínio: suamarca.com.br','App na App Store/Play'],
-                  preco:`R$1.559,90/mês` },
+                  feat:['Aplicativo 100% white label','Domínio: suamarca.com.br','App na App Store/Play'] },
               ].map(o=>(
                 <button key={o.v} onClick={()=>{ setPlano(o.v); if(o.v==='premium') setQuerDominio(false); }}
                   className={`rounded-2xl p-4 text-left border transition-all ${plano===o.v
@@ -822,10 +753,10 @@ function Calculadora() {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { v:'base', label:'Licença Base',        repasse:'R$149,90/cli', min:'Lucre cobrando acima de R$149,90',
+                { v:'base', label:'Licença Base',
                   feat:['3 usuários + 1 canal','CRM completo + automações','IA vendível como serviço separado'] },
-                { v:'ia',   label:'Base + IA Ilimitado', repasse:'R$199,90/cli', min:'Lucre cobrando acima de R$199,90',
-                  feat:['Tudo da licença base','IA conversacional inclusa','Treinamento por nicho'] },
+                { v:'ia',   label:'Base + IA Ilimitado',
+                  feat:['Tudo da licença base','Agente de IA Ilimitado','Treinamento por nicho'] },
               ].map(o=>(
                 <button key={o.v} onClick={()=>setLicenca(o.v)}
                   className={`rounded-xl p-3 text-left border transition-all ${licenca===o.v
@@ -835,8 +766,6 @@ function Calculadora() {
                     <span className="text-xs font-700 text-slate-200">{o.label}</span>
                     {licenca===o.v&&<span className="w-1.5 h-1.5 rounded-full bg-g-400"/>}
                   </div>
-                  <div className="text-[11px] font-800 text-g-400 mb-1">{o.repasse}</div>
-                  <div className="text-[9px] text-amber-400/80 mb-1.5">{o.min}</div>
                   {o.feat.map(f=>(
                     <div key={f} className="flex items-center gap-1 text-[10px] text-slate-600 mb-0.5">
                       <span className="text-g-700">✓</span>{f}
@@ -852,45 +781,21 @@ function Calculadora() {
               <div className="flex items-center justify-between mb-2.5">
                 <div>
                   <div className="text-xs font-600 text-slate-300">Taxa de implantação</div>
-                  <div className="text-[11px] text-slate-600 mt-0.5">{brl(taxaSetup)} · parcelável em até 12x</div>
+                  <div className="text-[11px] text-slate-600 mt-0.5">{brl(taxaSetup)} · parcelável em até 10x</div>
                 </div>
                 <div className="text-right">
                   <div className="text-[10px] text-slate-500">Parcela mensal</div>
                   <div className="text-sm font-800 text-amber-400">{brl(parcelaSetup)}/mês</div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                {[1,6,12].map(p=>(
-                  <button key={p} onClick={()=>setParcelas(p)}
-                    className="flex-1 py-1.5 rounded-lg text-xs font-700 border transition-all"
-                    style={{
-                      background: parcelas===p ? 'rgba(234,179,8,.15)' : 'rgba(255,255,255,.02)',
-                      borderColor: parcelas===p ? 'rgba(234,179,8,.4)' : 'rgba(255,255,255,.06)',
-                      color: parcelas===p ? '#EAB308' : '#475569'
-                    }}>
-                    {p===1?'À vista':`${p}x`}
-                  </button>
-                ))}
+              <div>
+                <div className="text-[11px] text-slate-500 mb-1.5">Em quantas vezes você quer pagar?</div>
+                <Slider min={1} max={10} step={1} value={parcelas} onChange={setParcelas}
+                  fmtL={v=>'À vista'} fmtR={v=>'10x'} fmtV={v=>v===1?'À vista':`${v}x de ${brl(taxaSetup/v)}`} accent="#EAB308"/>
               </div>
               {parcelas>1&&<div className="mt-2 text-[10px] text-slate-600 text-center">
                 {parcelas}x de <span className="text-amber-400 font-700">{brl(parcelaSetup)}</span> · parcelas quitadas no mês <span className="font-700 text-slate-400">{parcelas}</span>
               </div>}
-            </div>
-
-            {/* Conexão WhatsApp */}
-            <div className="mt-3 flex items-center justify-between rounded-xl border border-brand-border/40 px-4 py-2.5"
-              style={{background:'rgba(9,15,12,.6)'}}>
-              <div>
-                <div className="text-xs font-600 text-slate-300">Conexão WhatsApp</div>
-                <div className="text-[11px] text-slate-600 mt-0.5">
-                  {zapi ? 'Z-API · R$69,90/cliente/mês' : 'Cloud API Oficial Meta — sem custo adicional'}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] text-slate-500">Cloud API</span>
-                <Sw checked={zapi} onChange={setZapi}/>
-                <span className="text-[11px] text-slate-500">Z-API</span>
-              </div>
             </div>
           </div>
 
@@ -905,13 +810,13 @@ function Calculadora() {
             <div className="flex-1">
               <Tip pos="bottom"
                 title="Como é calculado seu nível"
-                text={`Baseado no seu lucro líquido de 12 meses após o investimento inicial (${brl(ganhoLiquido12)}). Iniciante: até R$30k · Prata: R$30k–R$80k · Ouro: R$80k–R$200k · Elite: acima de R$200k.`}>
+                text={`Baseado no seu lucro de 12 meses após o investimento inicial (${brl(ganhoLiquido12)}). Iniciante: até R$30k · Prata: R$30k–R$80k · Ouro: R$80k–R$200k · Elite: acima de R$200k.`}>
                 <div className="text-xs font-700 uppercase tracking-widest mb-0.5" style={{color:tier.color}}>{tier.label}</div>
               </Tip>
               <div className="text-[11px] text-slate-400">{tier.desc}</div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] text-slate-500">Lucro líquido</div>
+              <div className="text-[10px] text-slate-500">Lucro</div>
               <div className="text-sm font-800" style={{color:tier.color}}>
                 {brl(ganhoLiquido12)}<span className="text-[10px] font-400">/12m</span>
               </div>
@@ -925,7 +830,7 @@ function Calculadora() {
             <Tip pos="top"
               title="O que é este número?"
               text={'Soma das margens mensais dos 12 meses projetados. Parcelas da implantação (' + parcelas + 'x de ' + brl(parcelaSetup) + ') já descontadas mês a mês. Inclui custos fixos da plataforma e repasses por cliente.'}>
-              <div className="text-xs font-700 uppercase tracking-widest text-slate-500 mb-2">Seu lucro líquido em 12 meses</div>
+              <div className="text-xs font-700 uppercase tracking-widest text-slate-500 mb-2">Seu lucro em 12 meses</div>
             </Tip>
             <div className="text-5xl font-900 glow-green mb-1" style={{color:ganhoLiquido12>0?'#00D15E':'#EF4444'}}>
               {brl(ganhoLiquido12)}
@@ -1045,7 +950,7 @@ function Calculadora() {
               <Tip pos="left"
                 title="O que é o retorno sobre investimento?"
                 text={
-                  'Lucro líquido acumulado em 12 meses (' + brl(ganhoLiquido12) + ') dividido pelo investimento inicial (' + brl(taxaSetup) + '). ' +
+                  'Lucro acumulado em 12 meses (' + brl(ganhoLiquido12) + ') dividido pelo investimento inicial (' + brl(taxaSetup) + '). ' +
                   (roi > 0
                     ? Math.round(roi) + '% — para cada R$1 investido na adesão, você ganha R$' + (roi/100).toFixed(1) + ' de lucro em 12 meses.'
                     : 'Configure sua oferta para ver o retorno.')
@@ -1067,9 +972,9 @@ function Calculadora() {
               <div className="flex-1 text-center rounded-xl border py-2.5 transition-all"
                 style={{background:lucroPorCli>0?'rgba(0,209,94,.06)':'rgba(239,68,68,.06)', borderColor:lucroPorCli>0?'rgba(0,209,94,.2)':'rgba(239,68,68,.2)'}}>
                 <Tip pos="top"
-                  title="Lucro líquido por cliente"
+                  title="Lucro por cliente"
                   text={`Valor cobrado (${brl(ticketCRM)}) menos o mínimo necessário para cobrir todos os custos — plataforma, licença e adesão diluída (${brl(ticketMinimo)}). Este é o lucro real que cada cliente gera para você todo mês.`}>
-                  <div className="text-[10px] text-slate-500">Lucro líquido/cliente</div>
+                  <div className="text-[10px] text-slate-500">Lucro/cliente</div>
                 </Tip>
                 <div className={`text-base font-900`} style={{color:lucroPorCli>0?'#00D15E':'#EF4444'}}>{lucroPorCli>0?'+':''}{brl(lucroPorCli)}</div>
                 {clientes>0&&<div className="text-[10px] mt-0.5" style={{color:lucroPorCli>0?'#00D15E66':'#EF444466'}}>{lucroPorCli>0?'+':''}{brl(lucroMensal)}/mês c/ {clientes} clientes</div>}
@@ -1093,10 +998,10 @@ function Calculadora() {
                 Cada novo cliente vale{' '}
                 <Tip pos="top"
                   title="Valor anual por cliente"
-                  text={`${brl(lucroPorCli)}/mês × 12 meses = ${brl(lucroPorCli*12)}/ano de lucro líquido recorrente por cliente ativo na sua base.`}>
+                  text={`${brl(lucroPorCli)}/mês × 12 meses = ${brl(lucroPorCli*12)}/ano de lucro recorrente por cliente ativo na sua base.`}>
                   <span className="text-g-400 font-700">{brl(lucroPorCli*12)}/ano</span>
                 </Tip>
-                {' '}de lucro líquido recorrente
+                {' '}de lucro recorrente
               </div>
             )}
           </div>
@@ -1167,7 +1072,7 @@ function Calculadora() {
                 Quero este resultado →
               </button>
               <div className="flex items-center gap-3 mt-4">
-                {[`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro líquido: ${brl(ganhoLiquido12)}/ano`, paybackMes?`⚡ Recupera no mês ${paybackMes}`:''].filter(Boolean).map(t=>(
+                {[`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes?`⚡ Recupera no mês ${paybackMes}`:''].filter(Boolean).map(t=>(
                   <div key={t} className="flex-1 text-center text-[10px] text-slate-600 leading-tight">{t}</div>
                 ))}
               </div>
@@ -1198,7 +1103,7 @@ function Calculadora() {
                   style={{background:'rgba(0,209,94,.04)',borderColor:'rgba(0,209,94,.1)'}}>
                   <div className="text-g-400 font-700 mb-1">{tier.glyph} {tier.label}</div>
                   <div>Plano <strong className="text-slate-300">{plano==='pro'?'Pro':'Premium'}</strong> · {clientes} clientes ativos · +{novos}/mês</div>
-                  <div>Lucro líquido 12m: <strong className="text-g-400">{brl(ganhoLiquido12)}</strong>{paybackMes&&<span> · Recupera no mês <strong className="text-amber-400">{paybackMes}</strong></span>}</div>
+                  <div>Lucro 12m: <strong className="text-g-400">{brl(ganhoLiquido12)}</strong>{paybackMes&&<span> · Recupera no mês <strong className="text-amber-400">{paybackMes}</strong></span>}</div>
                   {(vendeIA||cobraSup||cobraImpl||vendeInsta)&&(
                     <div>{[vendeIA&&'+ IA', cobraSup&&'+ Suporte', cobraImpl&&'+ Implantação', vendeInsta&&'+ Instagram'].filter(Boolean).join(' · ')}</div>
                   )}
@@ -1223,7 +1128,7 @@ function Calculadora() {
               </p>
               <div className="grid grid-cols-2 gap-2 text-center">
                 {[
-                  {label:'Lucro líquido 12m',  val:brl(ganhoLiquido12),               color:'text-g-400'},
+                  {label:'Lucro 12m',  val:brl(ganhoLiquido12),               color:'text-g-400'},
                   {label:'Quando se paga',      val:paybackMes?`Mês ${paybackMes}`:'—', color:'text-amber-400'},
                   {label:'Retorno sobre invest.',val:roi>0?`${Math.round(roi)}%`:'—',  color:'text-g-400'},
                   {label:'Seu perfil',          val:tier.label,                         color:'text-slate-300'},
