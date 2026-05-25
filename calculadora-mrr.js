@@ -366,19 +366,17 @@ function Calculadora() {
   const paybackMes  = parcelas <= 12 ? parcelas : null;
 
   /* ── Métricas pros cards-resumo do gráfico ── */
-  // custo médio mensal durante o parcelamento (meses 1 a `parcelas`)
+  // Card 1: custo médio mensal durante o parcelamento (meses 1 a `parcelas`)
   const custoDurante = projecao.slice(0, Math.min(parcelas, 12)).reduce((s,d)=>s+d.custo, 0) / Math.min(parcelas, 12);
-  // custo médio mensal após o parcelamento (meses parcelas+1 a 12)
-  const custoApos    = parcelas < 12
-    ? projecao.slice(parcelas).reduce((s,d)=>s+d.custo, 0) / (12 - parcelas)
+  // Card 2: margem livre média mensal após o parcelamento (meses parcelas+1 a 12)
+  //         "quanto sobra de lucro depois de pagar tudo"
+  const margemLivrePos = parcelas < 12
+    ? projecao.slice(parcelas).reduce((s,d)=>s+d.margem, 0) / (12 - parcelas)
     : 0;
-  // investimento total: soma de todos os custos dos 12 meses
-  // (removido — não está mais sendo exibido)
-  // mês em que a margem mensal vira positiva
-  // (removido — não está mais sendo exibido como card)
 
-  /* ROI: lucro 12m vs total investido na implantação */
-  const roi         = taxaSetup > 0 ? ((ganhoLiquido12/taxaSetup)*100) : 0;
+  /* ROI: lucro acumulado 12m vs investimento total 12m (todos os custos pagos no período) */
+  const investimento12m = projecao.reduce((s,d)=>s+d.custo, 0); // soma de TODOS os custos dos 12 meses
+  const roi             = investimento12m > 0 ? ((ganhoLiquido12/investimento12m)*100) : 0;
 
   /* Tier baseado no ganho líquido real */
   const tier = getTier(ganhoLiquido12);
@@ -389,11 +387,18 @@ function Calculadora() {
   /* Insight copy */
   const insight = useMemo(() => {
     if (!recTotal) return { icon:'💡', text:'Configure sua oferta para ver o potencial de receita.', tone:'neutral' };
+    // Casos extremos (0 clientes e/ou 0 novos)
+    if (clientes === 0 && novos === 0) return { icon:'📋', text:`Você ainda não tem clientes nem está captando. Adicione clientes atuais ou novos clientes/mês para simular sua margem.`, tone:'neutral' };
+    if (clientes === 0 && novos > 0) return { icon:'🌱', text:`Começando do zero: com +${novos} clientes/mês, você acumula ${brl(ganhoLiquido12)} em 12 meses. Os primeiros meses são de prejuízo até cobrir o custo fixo.`, tone:'ok' };
+    if (clientes > 0 && novos === 0) return { icon:'📊', text:`Mantendo sua base de ${clientes} clientes sem prospectar, você acumula ${brl(ganhoLiquido12)} em 12 meses. Capte novos para acelerar.`, tone:'ok' };
+    // Margem negativa
     if (margemMensal < 0) return { icon:'⚠️', text:`Aumente o valor cobrado por cliente ou o número de clientes para cobrir os custos da plataforma. Você precisa de pelo menos ${breakeven??'—'} clientes para equilibrar as contas.`, tone:'warn' };
+    // Parcelamento curto = ótimo perfil
     if (paybackMes && paybackMes <= 3) return { icon:'🚀', text:`Suas parcelas terminam no mês ${paybackMes}. A partir daí sua margem sobe ${brl(parcelaSetup)}/mês. Excelente perfil de entrada.`, tone:'great' };
     if (paybackMes && paybackMes <= 6) return { icon:'✅', text:`Parcelas quitadas no mês ${paybackMes}. Depois disso, você economiza ${brl(parcelaSetup)}/mês e sua margem fica em ${brl(marg12)}/mês no mês 12.`, tone:'good' };
+    // Caso padrão
     return { icon:'📈', text:`Com +${novos} clientes/mês, você acumula ${brl(ganhoLiquido12)} em 12 meses já com todas as parcelas pagas. Ative mais fontes de receita para acelerar.`, tone:'ok' };
-  }, [margemMensal, paybackMes, recTotal, breakeven, lucroPorCli, ganhoLiquido12, novos]);
+  }, [margemMensal, paybackMes, recTotal, breakeven, lucroPorCli, ganhoLiquido12, novos, clientes, marg12, parcelaSetup]);
 
   const toneCls = {
     neutral:'bg-slate-900/50 border-slate-700/30 text-slate-400',
@@ -870,13 +875,13 @@ function Calculadora() {
                 style={{background:'rgba(239,68,68,.05)',borderColor:'rgba(239,68,68,.2)'}}>
                 <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses 1{parcelas>1?`–${parcelas}`:''}</div>
                 <div className="text-lg font-800 text-red-400 mt-1">{brl(custoDurante)}<span className="text-[10px] text-red-400/60 font-600">/mês</span></div>
-                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas>1?'durante parcelamento':'à vista no mês 1'}</div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas>1?'custo com a Helena durante parcelamento':'custo único + 1 mês'}</div>
               </div>
               <div className="rounded-lg border px-3.5 py-3"
                 style={{background:'rgba(0,209,94,.05)',borderColor:'rgba(0,209,94,.2)'}}>
                 <div className="text-[10px] uppercase tracking-wider text-slate-500 leading-tight">Meses {Math.min(parcelas+1,12)}–12</div>
-                <div className="text-lg font-800 text-g-400 mt-1">{brl(custoApos)}<span className="text-[10px] text-g-400/60 font-600">/mês</span></div>
-                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas<12?'após quitação da implantação':'parcelamento dura 12 meses'}</div>
+                <div className={`text-lg font-800 mt-1 ${margemLivrePos>=0?'text-g-400':'text-red-400'}`}>{margemLivrePos>=0?'+':''}{brl(margemLivrePos)}<span className={`text-[10px] font-600 ${margemLivrePos>=0?'text-g-400/60':'text-red-400/60'}`}>/mês</span></div>
+                <div className="text-[10px] text-slate-600 mt-1 leading-tight">{parcelas<12?'margem livre após pagar tudo':'parcelamento dura 12 meses'}</div>
               </div>
             </div>
 
@@ -965,17 +970,17 @@ function Calculadora() {
             </div>
             <div className="card p-3 text-center">
               <Tip pos="left"
-                title="O que é o retorno sobre investimento?"
+                title="O que é o retorno em 12 meses?"
                 text={
-                  'Lucro acumulado em 12 meses (' + brl(ganhoLiquido12) + ') dividido pelo investimento inicial (' + brl(taxaSetup) + '). ' +
+                  'Lucro acumulado em 12 meses (' + brl(ganhoLiquido12) + ') dividido pelo total investido com a Helena no período (' + brl(investimento12m) + '). ' +
                   (roi > 0
-                    ? Math.round(roi) + '% — para cada R$1 investido na adesão, você ganha R$' + (roi/100).toFixed(1) + ' de lucro em 12 meses.'
+                    ? Math.round(roi) + '% — para cada R$1 investido na Helena, você tem R$' + (roi/100).toFixed(1) + ' de lucro em 12 meses.'
                     : 'Configure sua oferta para ver o retorno.')
                 }>
                 <div className="text-[10px] text-slate-500 mb-1">Retorno em 12m</div>
               </Tip>
               <div className={`text-sm font-900 ${roi>=200?'text-g-400':roi>100?'text-amber-400':'text-slate-300'}`}>{roi>0?`${Math.round(roi)}%`:'—'}</div>
-              <div className="text-[10px] text-slate-600 mt-0.5">sobre o investimento inicial</div>
+              <div className="text-[10px] text-slate-600 mt-0.5">sobre o investido</div>
             </div>
           </div>
 
