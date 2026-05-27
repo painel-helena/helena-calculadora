@@ -612,7 +612,7 @@ function Calculadora() {
                     <div>
                       <div className="text-[11px] text-slate-500 mb-1">Quantos canais extras você quer disponibilizar</div>
                       <Slider min={1} max={20} step={1} value={extraCanais} onChange={setExtraCanais}
-                        fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} canal${v>1?'is':''} extra${v>1?'s':''}`} accent="#FBBF24"/>
+                        fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} ${v>1?'canais':'canal'} extra${v>1?'s':''}`} accent="#FBBF24"/>
                     </div>
                     <div className="rounded-lg px-2.5 py-1.5 text-[10px] border" style={{background:'rgba(251,191,36,.05)',borderColor:'rgba(251,191,36,.15)',color:'rgba(251,191,36,.7)'}}>
                       {extraCanais<=4 && <>💡 Faixa atual: <b>R$ 29,90/canal</b> · Acima de 5 canais, o valor cai para <b>R$ 19,90</b></>}
