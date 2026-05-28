@@ -5,7 +5,7 @@ const { createPortal } = ReactDOM;
 const CUSTO_PLATAFORMA  = 659.90;            // licenciamento mensal (ambos os planos)
 const CUSTO_DOMINIO_PRO = 190.00;            // domínio próprio Pro (opcional)
 const CUSTO_APP_PREMIUM = 900.00;            // mensalidade do App Premium (obrigatório)
-const CUSTO_LICENCA     = { base: 149.90, ia: 199.90 }; // repasse por cliente/mês
+// Nota: licença base (R$149,90) e base+IA (R$199,90) NÃO são custos do parceiro — já estão contempladas na mensalidade cobrada do cliente
 const TAXA_SETUP        = { pro: 4900, premium: 7900 };  // implantação (parcelável)
 const CUSTO_IA_AGENTE   = 50.00;             // custo Helena por agente de IA extra/cliente/mês
 
@@ -299,11 +299,11 @@ function Calculadora() {
   const custoFixo       = CUSTO_PLATAFORMA + custoAppMensal;           // custo fixo SEM parcela
   const custoFixoTotal  = custoFixo + parcelaSetup;                    // custo fixo COM parcela (durante pagamento)
 
-  const custoLic         = CUSTO_LICENCA[licenca];
+  // Licença (R$ 149,90 / R$ 199,90) NÃO entra no custo — já está contemplada na mensalidade que o parceiro cobra
   const custoExtraUsers  = vendeUsers  ? custoUsuariosExtras(extraUsers) : 0;
   const custoExtraCanais = vendeCanais ? custoCanaisExtras(extraCanais)  : 0;
   const custoExtraIA     = vendeIA     ? qtdIA * CUSTO_IA_AGENTE         : 0; // R$50 × qtd agentes extras
-  const custoPorCli      = custoLic + custoExtraUsers + custoExtraCanais + custoExtraIA;
+  const custoPorCli      = custoExtraUsers + custoExtraCanais + custoExtraIA; // só extras, sem licença
 
   const recPorCli       = ticketCRM + (cobraSup ? ticketSup : 0);
   const margemPorCli    = recPorCli - custoPorCli;
