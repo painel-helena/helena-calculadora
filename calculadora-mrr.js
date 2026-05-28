@@ -572,7 +572,7 @@ function Calculadora() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-700 text-slate-100">Usuários Adicionais</span>
                       </div>
-                      <div className="text-xs text-slate-500">Acima dos 3 usuários inclusos no plano base</div>
+                      <div className="text-xs text-slate-500">Cada cliente já vem com 3 usuários inclusos na licença</div>
                     </div>
                   </div>
                   <Sw checked={vendeUsers} onChange={setVendeUsers}/>
@@ -602,7 +602,7 @@ function Calculadora() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-700 text-slate-100">Canais Adicionais</span>
                       </div>
-                      <div className="text-xs text-slate-500">WhatsApp ou Direct/Messenger — você define o preço</div>
+                      <div className="text-xs text-slate-500">WhatsApp ou Direct/Messenger — cada cliente já vem com 1 canal incluso</div>
                     </div>
                   </div>
                   <Sw checked={vendeCanais} onChange={setVendeCanais}/>
