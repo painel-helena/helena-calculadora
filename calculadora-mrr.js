@@ -631,16 +631,21 @@ function Calculadora() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-700 text-slate-100">Agentes de IA</span>
                       </div>
-                      <div className="text-xs text-slate-500">Além do agente incluso na licença Base + IA</div>
+                      <div className="text-xs text-slate-500">{licenca==='ia'?'A licença Base + IA já inclui 1 agente por cliente — estes são extras':'Agentes de IA adicionais por cliente'}</div>
                     </div>
                   </div>
                   <Sw checked={vendeIA} onChange={setVendeIA}/>
                 </div>
                 {vendeIA&&(
                   <div className="mt-3 pt-3 border-t border-brand-border/40 fu">
-                    <div className="text-[11px] text-slate-500 mb-1">Quantos agentes extras você quer disponibilizar por cliente</div>
-                    <Slider min={1} max={10} step={1} value={qtdIA} onChange={setQtdIA}
+                    <div className="text-[11px] text-slate-500 mb-1">Quantos agentes extras por cliente {licenca==='ia'?'(além do 1 já incluso na licença)':''}</div>
+                    <Slider min={1} max={50} step={1} value={qtdIA} onChange={setQtdIA}
                       fmtL={v=>`${v}`} fmtR={v=>`${v}`} fmtV={v=>`${v} agente${v>1?'s':''} extra${v>1?'s':''}`} accent="#4ADE80"/>
+                    {licenca==='ia'&&(
+                      <div className="mt-2 rounded-lg px-2.5 py-1.5 text-[10px] border" style={{background:'rgba(74,222,128,.05)',borderColor:'rgba(74,222,128,.15)',color:'rgba(74,222,128,.7)'}}>
+                        ✅ Licença Base + IA: <b>1 agente já incluso</b> por cliente. Os {qtdIA} extra{qtdIA>1?'s':''} abaixo são cobrado{qtdIA>1?'s':''} à parte.
+                      </div>
+                    )}
                     <div className="mt-2 rounded-lg px-2.5 py-1.5 text-[10px] text-g-300/70 border border-g-400/15" style={{background:'rgba(0,209,94,.05)'}}>
                       💡 Custo Helena: <b>R$ 50/agente/cliente/mês</b>. Esse valor é somado aos custos da plataforma — você pode repassar ao cliente ajustando o valor cobrado por cliente.
                     </div>
