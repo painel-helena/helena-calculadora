@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sua Simulação — Helena CRM</title>
+<link rel="icon" type="image/png" href="../assets/logo_helena_simbolo_colorido.png" />
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; color:#1a1a1a; background:#e9edf0; }
+
+  /* ── Barra de ações (só na tela, some na impressão) ── */
+  .toolbar {
+    position: sticky; top:0; z-index:50;
+    background:#090F0C; color:#fff;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; gap:12px;
+  }
+  .toolbar__brand { color:#00D15E; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+  .toolbar__btn {
+    background:#00D15E; color:#090F0C; border:none; cursor:pointer;
+    font-size:14px; font-weight:800; padding:10px 20px; border-radius:8px;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .toolbar__btn:hover { background:#00b853; }
+
+  /* ── Estados (loading / erro) ── */
+  .state {
+    max-width:540px; margin:80px auto; text-align:center; padding:40px 24px;
+    background:#fff; border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,.08);
+  }
+  .state__icon { font-size:48px; margin-bottom:16px; }
+  .state__title { font-size:20px; font-weight:800; color:#111; margin-bottom:8px; }
+  .state__msg { font-size:14px; color:#666; line-height:1.6; }
+  .spinner {
+    width:34px; height:34px; border:4px solid #dff0e6; border-top-color:#00D15E;
+    border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 18px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── Container do relatório (folhas A4) ── */
+  #report { max-width:210mm; margin:24px auto; }
+  .folha {
+    background:#fff; width:210mm; min-height:auto;
+    margin:0 auto 24px; box-shadow:0 4px 24px rgba(0,0,0,.12);
+    overflow:hidden;
+  }
+
+  /* CAPA */
+  .capa {
+    background:#090F0C; width:210mm; min-height:297mm;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    text-align:center; padding:60px 48px;
+  }
+  .capa-logo { color:#00D15E; font-size:11px; font-weight:700; letter-spacing:4px; text-transform:uppercase; margin-bottom:48px; }
+  .capa-nome { color:rgba(255,255,255,0.55); font-size:15px; margin-bottom:8px; }
+  .capa-titulo { color:#fff; font-size:36px; font-weight:900; line-height:1.1; margin-bottom:14px; }
+  .capa-titulo span { color:#00D15E; }
+  .capa-sub { color:rgba(255,255,255,0.35); font-size:12px; margin-bottom:48px; }
+  .capa-valor { color:#00D15E; font-size:64px; font-weight:900; line-height:1; margin-bottom:8px; }
+  .capa-valor-label { color:rgba(255,255,255,0.45); font-size:13px; margin-bottom:36px; }
+  .capa-tier { display:inline-flex; align-items:center; gap:8px; background:rgba(0,209,94,0.1); border:1px solid rgba(0,209,94,0.25); border-radius:100px; padding:10px 24px; color:#00D15E; font-size:13px; font-weight:700; }
+
+  /* PÁGINAS INTERNAS */
+  .pagina { padding:44px 48px; min-height:297mm; }
+  .section-label { font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#00D15E; margin-bottom:5px; }
+  .section-title { font-size:22px; font-weight:900; color:#111; margin-bottom:20px; }
+
+  .kpis { display:flex; gap:10px; margin-bottom:22px; }
+  .kpi { flex:1; background:#f7faf8; border:1px solid #dff0e6; border-radius:10px; padding:14px; text-align:center; }
+  .kpi-label { font-size:9px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+  .kpi-value { font-size:18px; font-weight:900; color:#00A048; }
+  .kpi-value.amber { color:#D97706; }
+  .kpi-sub { font-size:9px; color:#aaa; margin-top:3px; }
+
+  .config-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px; }
+  .config-item { background:#f9fafb; border:1px solid #eee; border-radius:7px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .config-key { font-size:10px; color:#666; }
+  .config-val { font-size:11px; font-weight:700; color:#111; }
+
+  .tabela { width:100%; border-collapse:collapse; margin-bottom:22px; }
+  .tabela thead tr { background:#111; }
+  .tabela thead th { padding:7px 12px; font-size:9px; font-weight:700; color:#fff; text-align:right; letter-spacing:0.5px; }
+  .tabela thead th:first-child { text-align:left; }
+
+  .cta-box { background:linear-gradient(135deg,#00D15E,#00A048); border-radius:14px; padding:28px; text-align:center; margin-top:20px; }
+  .cta-titulo { color:#fff; font-size:18px; font-weight:900; margin-bottom:8px; }
+  .cta-sub { color:rgba(255,255,255,0.85); font-size:12px; margin-bottom:14px; line-height:1.5; }
+  .cta-contato { color:#fff; font-size:13px; font-weight:700; margin-bottom:6px; }
+  .cta-disclaimer { color:rgba(255,255,255,0.55); font-size:9px; }
+
+  /* ── Impressão: vira PDF A4 perfeito ── */
+  @page { margin:0; size:A4; }
+  @media print {
+    body { background:#fff; }
+    .toolbar { display:none !important; }
+    #report { margin:0; max-width:none; }
+    .folha { box-shadow:none; margin:0; page-break-after:always; }
+    .folha:last-child { page-break-after:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span class="toolbar__brand">● Helena CRM · Sua Simulação</span>
+  <button class="toolbar__btn" id="btnPdf" onclick="window.print()" style="display:none">
+    ⬇ Baixar PDF
+  </button>
+</div>
+
+<div id="app">
+  <div class="state">
+    <div class="spinner"></div>
+    <div class="state__title">Carregando sua simulação…</div>
+    <div class="state__msg">Um instante, estamos preparando seus números.</div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Esta página é autossuficiente: os dados da simulação vêm
+   codificados no próprio link (?d=...), gerado pela calculadora.
+   Não precisa de banco de dados, chaves nem configuração.
+══════════════════════════════════════════════════════════════ */
+
+/* ─── Helpers ─── */
+const brl = (v) => {
+  const n = Number(v) || 0;
+  if (Math.abs(n) < 0.01) return 'R$ 0';
+  return 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+};
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ─── Renderiza o relatório a partir dos dados (d = body normalizado) ─── */
+function renderReport(d) {
+  const linhasTabela = (d.projecao_mensal || []).map((m, i) => {
+    const cor = m.margem >= 0 ? '#00A048' : '#DC2626';
+    const bg  = i % 2 === 0 ? '#f8f9fa' : '#ffffff';
+    return `<tr style="background:${bg}">
+      <td style="padding:6px 12px;font-size:11px;color:#444">${m.mes}</td>
+      <td style="padding:6px 12px;font-size:11px;color:#444;text-align:right">${m.clientes}</td>
+      <td style="padding:6px 12px;font-size:11px;color:#444;text-align:right">${brl(m.receita)}</td>
+      <td style="padding:6px 12px;font-size:11px;color:#444;text-align:right">${brl(m.custo)}</td>
+      <td style="padding:6px 12px;font-size:11px;font-weight:700;color:${cor};text-align:right">${brl(m.margem)}</td>
+    </tr>`;
+  }).join('');
+
+  const extras = [
+    d.vende_ia          && 'Agentes de IA',
+    d.cobra_suporte     && 'Suporte & Consultoria',
+    d.cobra_implantacao && 'Taxa de Implantação',
+    d.vende_usuarios    && 'Usuários Adicionais',
+    d.vende_canais      && 'Canais Adicionais',
+  ].filter(Boolean);
+  const extrasHtml = extras.length
+    ? extras.map(e => `<span style="background:rgba(0,209,94,0.08);border:1px solid rgba(0,209,94,0.2);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:600;color:#00A048;margin:3px;display:inline-block">✓ ${esc(e)}</span>`).join('')
+    : '<span style="color:#aaa;font-size:11px">Nenhuma ativada</span>';
+
+  const dataGerada = d.data_hora
+    ? esc(d.data_hora)
+    : new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+
+  return `
+  <!-- CAPA -->
+  <div class="folha">
+    <div class="capa">
+      <div class="capa-logo">● Helena CRM &nbsp;·&nbsp; Simulação de Parceiro</div>
+      <div class="capa-nome">Simulação personalizada de parceiro</div>
+      <h1 class="capa-titulo">Seu potencial com<br/><span>a Helena CRM</span></h1>
+      <div class="capa-sub">Simulação gerada em ${dataGerada}</div>
+      <div class="capa-valor">${brl(d.lucro_liquido_12m)}</div>
+      <div class="capa-valor-label">de lucro projetado em 12 meses</div>
+      <div class="capa-tier">${esc(d.perfil_tier)}</div>
+    </div>
+  </div>
+
+  <!-- PÁGINA 2: RESUMO -->
+  <div class="folha">
+    <div class="pagina">
+      <div class="section-label">Resumo da simulação</div>
+      <div class="section-title">Seus números em destaque</div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-label">Lucro total 12 meses</div>
+          <div class="kpi-value">${brl(d.lucro_liquido_12m)}</div>
+          <div class="kpi-sub">parcelas descontadas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Lucro no mês 1</div>
+          <div class="kpi-value">${brl(d.lucro_mes1)}</div>
+          <div class="kpi-sub">primeiros clientes</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Lucro no mês 12</div>
+          <div class="kpi-value">${brl(d.lucro_mes12)}</div>
+          <div class="kpi-sub">${esc(d.clientes_mes12)} clientes</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Retorno (ROI)</div>
+          <div class="kpi-value amber">${esc(d.retorno_pct)}%</div>
+          <div class="kpi-sub">sobre investido</div>
+        </div>
+      </div>
+
+      <div class="section-label">Configuração simulada</div>
+      <div style="font-size:18px;font-weight:900;color:#111;margin-bottom:16px">O que foi simulado</div>
+
+      <div class="config-grid">
+        <div class="config-item"><span class="config-key">Plano da plataforma</span><span class="config-val">${d.plano === 'pro' ? 'Pro' : 'Premium'}</span></div>
+        <div class="config-item"><span class="config-key">Licença por cliente</span><span class="config-val">${d.licenca === 'base' ? 'Base' : 'Base + IA Ilimitado'}</span></div>
+        <div class="config-item"><span class="config-key">Clientes ativos hoje</span><span class="config-val">${esc(d.clientes)} clientes</span></div>
+        <div class="config-item"><span class="config-key">Novos clientes/mês</span><span class="config-val">+${esc(d.novos_por_mes)}/mês</span></div>
+        <div class="config-item"><span class="config-key">Mensalidade/cliente</span><span class="config-val">${brl(d.mensalidade_crm)}/mês</span></div>
+        <div class="config-item"><span class="config-key">Parcelamento implantação</span><span class="config-val">${d.parcelas === 1 ? 'À vista' : esc(d.parcelas) + 'x'}</span></div>
+        <div class="config-item"><span class="config-key">Parcelas quitadas</span><span class="config-val" style="color:#D97706">Mês ${esc(d.mes_recuperacao)}</span></div>
+        <div class="config-item"><span class="config-key">Clientes no mês 12</span><span class="config-val">${esc(d.clientes_mes12)} clientes</span></div>
+      </div>
+
+      <div class="section-label">Receitas adicionais ativas</div>
+      <div style="margin-top:8px">${extrasHtml}</div>
+    </div>
+  </div>
+
+  <!-- PÁGINA 3: PROJEÇÃO + CTA -->
+  <div class="folha">
+    <div class="pagina">
+      <div class="section-label">Projeção mensal</div>
+      <div class="section-title">Evolução mês a mês</div>
+
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th style="text-align:left">Mês</th>
+            <th>Clientes</th>
+            <th>Receita</th>
+            <th>Custos</th>
+            <th>Margem</th>
+          </tr>
+        </thead>
+        <tbody>${linhasTabela}</tbody>
+      </table>
+
+      <div class="cta-box">
+        <div class="cta-titulo">Pronto para transformar isso em realidade?</div>
+        <div class="cta-sub">Fale com um especialista Helena e receba uma proposta personalizada baseada nesta simulação. Nossa equipe está pronta para te ajudar a dar o próximo passo.</div>
+        <div class="cta-contato">💬 Fale com o comercial Helena</div>
+        <div class="cta-disclaimer">Simulação para fins informativos. Valores reais podem variar conforme mercado e capacidade operacional.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ─── Estados de erro ─── */
+function showState(icon, title, msg) {
+  document.getElementById('app').innerHTML =
+    `<div class="state"><div class="state__icon">${icon}</div>
+     <div class="state__title">${title}</div>
+     <div class="state__msg">${msg}</div></div>`;
+}
+
+/* ─── Lê a simulação do próprio link (?d=) e renderiza ─── */
+function init() {
+  const encoded = new URLSearchParams(location.search).get('d');
+  if (!encoded) {
+    return showState('🔎', 'Link incompleto', 'Esta página precisa do link completo da simulação. Verifique o link recebido.');
+  }
+  try {
+    const json = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
+    const data = JSON.parse(json);
+    document.getElementById('app').innerHTML = `<div id="report"></div>`;
+    document.getElementById('report').innerHTML = renderReport(data);
+    document.getElementById('btnPdf').style.display = 'inline-flex';
+    document.title = `Simulação de ${data.nome || 'Parceiro'} — Helena CRM`;
+  } catch (err) {
+    showState('⚠️', 'Link inválido', 'Não foi possível ler os dados desta simulação. O link pode estar incompleto ou corrompido.');
+    console.error(err);
+  }
+}
+init();
+</script>
+</body>
+</html>
