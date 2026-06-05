@@ -236,6 +236,52 @@ function Timeline({ hoje, paybackMes, mes12, parcelaSetup, parcelas }) {
 }
 
 /* ════════════════════════════════════════
+   FORMULÁRIO RD (embutido) — conecta a calculadora ao RD, já com o link da simulação
+════════════════════════════════════════ */
+const RD_FORM_ID    = 'calculadora-simulacao-e99450ea44f139e159ab';
+const RD_FORM_TOKEN = 'UA-199540720-1';
+
+function RdForm({ simUrl }) {
+  const injectRef = useRef(() => false);
+
+  /* Preenche o campo oculto do link e o esconde do lead */
+  injectRef.current = () => {
+    const box = document.getElementById(RD_FORM_ID);
+    if (!box) return false;
+    const campo = box.querySelector('[name="cf_link_da_simulacao"]');
+    if (!campo) return false;
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    setter.call(campo, simUrl);
+    campo.dispatchEvent(new Event('input',  { bubbles: true }));
+    campo.dispatchEvent(new Event('change', { bubbles: true }));
+    const wrap = campo.closest('.bricks-form__field') || campo.closest('[class*="field"]') || campo.parentElement;
+    if (wrap) wrap.style.display = 'none';
+    return true;
+  };
+
+  /* Cria o formulário uma única vez (carrega o script do RD se preciso) */
+  useEffect(() => {
+    const render = () => {
+      try { new window.RDStationForms(RD_FORM_ID, RD_FORM_TOKEN).createForm(); } catch (e) {}
+      let n = 0;
+      const t = setInterval(() => { n++; if (injectRef.current() || n > 50) clearInterval(t); }, 400);
+    };
+    if (window.RDStationForms) { render(); }
+    else {
+      const s = document.createElement('script');
+      s.src = 'https://d335luupugsy2.cloudfront.net/js/rdstation-forms/stable/rdstation-forms.min.js';
+      s.onload = render;
+      document.body.appendChild(s);
+    }
+  }, []);
+
+  /* Mantém o link sempre atualizado conforme a configuração muda */
+  useEffect(() => { injectRef.current(); }, [simUrl]);
+
+  return <div role="main" id={RD_FORM_ID} />;
+}
+
+/* ════════════════════════════════════════
    MAIN COMPONENT
 ════════════════════════════════════════ */
 function Calculadora() {
@@ -398,6 +444,27 @@ function Calculadora() {
     // Mostra confirmação imediatamente — n8n trabalha em paralelo
     setStep(2);
   };
+
+  /* ── Link autocontido da simulação (sem dados pessoais) — atualiza com a configuração ── */
+  const simUrl = (() => {
+    const simData = {
+      data_hora: new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }),
+      plano, licenca, clientes, novos_por_mes: novos, mensalidade_crm: ticketCRM,
+      parcelas, mes_recuperacao: paybackMes ?? parcelas,
+      vende_ia: vendeIA, cobra_suporte: cobraSup, cobra_implantacao: cobraImpl,
+      vende_usuarios: vendeUsers, vende_canais: vendeCanais,
+      lucro_liquido_12m: Math.round(ganhoLiquido12), lucro_mes1: Math.round(marg1), lucro_mes12: Math.round(marg12),
+      clientes_mes12: cli12, retorno_pct: Math.round(roi), perfil_tier: tier.label,
+      projecao_mensal: projecao.map((d, i) => ({
+        mes: MONTHS[i], clientes: d.cli,
+        receita: Math.round(d.mrr + d.sup + d.impl),
+        custo: Math.round(d.custo), margem: Math.round(d.margem),
+      })),
+    };
+    const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(simData)))));
+    const base = window.location.href.split(/[?#]/)[0].replace(/[^/]*$/, '');
+    return `${base}simulacao.html?d=${encoded}`;
+  })();
 
   /* ══ Render ══ */
   return (
@@ -792,33 +859,20 @@ function Calculadora() {
 
           {step===1&&(
             <div className="card p-5 fu" id="cta-form">
-              <div className="text-sm font-700 text-slate-200 mb-1">Receba sua simulação completa</div>
-              <p className="text-xs text-slate-500 mb-4">Preencha seus dados e receba a simulação detalhada no seu e-mail.</p>
-              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                {[
-                  {k:'nome',p:'Seu nome completo',t:'text',r:true},
-                  {k:'empresa',p:'Nome da empresa',t:'text',r:true},
-                  {k:'email',p:'Seu melhor e-mail',t:'email',r:true},
-                  {k:'whatsapp',p:'WhatsApp com DDD',t:'tel',r:true},
-                ].map(f=>(
-                  <input key={f.k} type={f.t} placeholder={f.p} required={f.r}
-                    value={form[f.k]||''} onChange={e=>setForm(x=>({...x,[f.k]:e.target.value}))}
-                    className="w-full rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 outline-none border transition-all"
-                    style={{background:'rgba(255,255,255,.03)',borderColor:'rgba(255,255,255,.07)'}}
-                    onFocus={e=>{e.target.style.borderColor='rgba(0,209,94,.4)'}}
-                    onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,.07)'}}/>
-                ))}
-                <div className="rounded-xl px-3 py-2.5 text-[11px] text-slate-500 border" style={{background:'rgba(0,209,94,.04)',borderColor:'rgba(0,209,94,.1)'}}>
-                  <div className="text-g-400 font-700 mb-1">{tier.glyph} {tier.label}</div>
-                  <div>Plano <strong className="text-slate-300">{plano==='pro'?'Pro':'Premium'}</strong> · {clientes} clientes · +{novos}/mês</div>
-                  <div>Lucro 12m: <strong className="text-g-400">{brl(ganhoLiquido12)}</strong>{paybackMes&&<span> · Recupera no mês <strong className="text-amber-400">{paybackMes}</strong></span>}</div>
-                </div>
-                <button type="submit" className="w-full py-3.5 rounded-2xl font-800 text-sm active:scale-95 transition-all"
-                  style={{background:'linear-gradient(135deg,#00D15E,#00B050)',color:'#090F0C',boxShadow:'0 4px 20px #00D15E1E'}}>
-                  Receber minha simulação →
-                </button>
-                <p className="text-[11px] text-slate-600 text-center">Sem spam · Simulação enviada por e-mail em instantes</p>
-              </form>
+              <div className="text-sm font-700 text-slate-200 mb-1">Receba sua simulação por e-mail</div>
+              <p className="text-xs text-slate-500 mb-3">Preencha seus dados e enviamos a sua simulação completa pro seu e-mail.</p>
+
+              <div className="rounded-xl px-3 py-2.5 text-[11px] text-slate-500 border mb-3" style={{background:'rgba(0,209,94,.04)',borderColor:'rgba(0,209,94,.1)'}}>
+                <div className="text-g-400 font-700 mb-1">{tier.glyph} {tier.label}</div>
+                <div>Plano <strong className="text-slate-300">{plano==='pro'?'Pro':'Premium'}</strong> · {clientes} clientes · +{novos}/mês</div>
+                <div>Lucro 12m: <strong className="text-g-400">{brl(ganhoLiquido12)}</strong>{paybackMes&&<span> · Recupera no mês <strong className="text-amber-400">{paybackMes}</strong></span>}</div>
+              </div>
+
+              {/* Formulário do RD — envia direto pro RD e dispara a automação do e-mail */}
+              <div style={{background:'#fff',borderRadius:'14px',padding:'16px'}}>
+                <RdForm simUrl={simUrl} />
+              </div>
+              <p className="text-[11px] text-slate-600 text-center mt-3">Sem spam · Você recebe a simulação no seu e-mail</p>
             </div>
           )}
 
