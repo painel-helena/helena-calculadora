@@ -12,8 +12,8 @@
   /* ── Toolbar (some na impressão) ── */
   .toolbar { position:sticky; top:0; z-index:50; background:#0d1b2a; color:#fff;
     display:flex; align-items:center; justify-content:space-between; padding:12px 20px; gap:12px; }
-  .toolbar__brand { font-size:13px; font-weight:700; letter-spacing:1px; }
-  .toolbar__brand b { color:#00c45a; }
+  .toolbar__brand { font-size:13px; font-weight:700; letter-spacing:1px; display:flex; align-items:center; gap:8px; }
+  .toolbar__brand img { height:22px; display:block; }
   .toolbar__btn { background:#00c45a; color:#0d1b2a; border:none; cursor:pointer; font-size:14px;
     font-weight:800; padding:10px 22px; border-radius:8px; display:inline-flex; align-items:center; gap:8px; }
   .toolbar__btn:hover { background:#00b050; }
@@ -32,30 +32,34 @@
   #report { max-width:210mm; margin:24px auto; }
   .folha { width:210mm; margin:0 auto 24px; box-shadow:0 4px 24px rgba(0,0,0,.12); overflow:hidden; background:#fff; }
 
-  /* CAPA (escura) */
-.capa { background:#0d1b2a; min-height:297mm; padding:48px 52px; display:flex; flex-direction:column; justify-content:center; }
-.capa-top { display:flex; align-items:center; justify-content:space-between; position:absolute; top:48px; left:52px; right:52px; }
-.capa { position:relative; }
-  .brand { font-size:20px; font-weight:800; color:#fff; letter-spacing:-.3px; }
-  .brand b { color:#00c45a; }
+  /* CAPA (escura) — conteúdo centralizado */
+  .capa { background:#0d1b2a; min-height:297mm; padding:48px 52px;
+    display:flex; flex-direction:column; justify-content:center; position:relative; }
+  .capa-top { display:flex; align-items:center; justify-content:space-between;
+    position:absolute; top:48px; left:52px; right:52px; }
+  .capa > div:not(.capa-top) { text-align:center; max-width:520px; margin:0 auto; }
+
+  .brand img { display:block; }
+  .capa-top .brand img { height:28px; }
+
   .pill { border:1px solid #3a5a7a; color:#a0b0c0; font-size:10px; font-weight:700; letter-spacing:2px;
     text-transform:uppercase; padding:6px 16px; border-radius:20px; }
   .capa-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#00c45a; margin-bottom:18px; }
   .capa-h1 { font-size:40px; line-height:1.15; font-weight:900; color:#fff; margin-bottom:22px; }
   .capa-h1 em { font-style:normal; color:#00c45a; }
-  .capa-sub { font-size:15px; color:#a0b0c0; line-height:1.7; max-width:460px; margin-bottom:40px; }
+  .capa-sub { font-size:15px; color:#a0b0c0; line-height:1.7; max-width:460px; margin:0 auto 40px; }
   .capa-box { background:linear-gradient(135deg, rgba(0,196,90,.14), rgba(0,196,90,.04));
-    border:1px solid rgba(0,196,90,.3); border-radius:16px; padding:34px 36px; }
+    border:1px solid rgba(0,196,90,.3); border-radius:16px; padding:34px 36px; text-align:center; }
   .capa-box-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#5fcf8e; margin-bottom:10px; }
   .capa-box-val { font-size:58px; font-weight:900; color:#00c45a; line-height:1; margin-bottom:10px; }
   .capa-box-desc { font-size:13px; color:#8fa3b5; line-height:1.5; }
   .capa-disc { font-size:10px; color:#5a6b7d; margin-top:24px; }
 
   /* PÁGINAS BRANCAS */
-  .pagina { padding:44px 52px; min-height:297mm; position:relative; }
+  .pagina { padding:44px 52px; min-height:297mm; position:relative; display:flex; flex-direction:column; }
   .pg-top { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px;
     border-bottom:2px solid #00c45a; margin-bottom:30px; }
-  .pg-top .brand { color:#0d1b2a; font-size:18px; }
+  .pg-top .brand img { height:24px; }
   .pg-top-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#9aabb8; }
   .pg-h2 { font-size:24px; font-weight:900; color:#0d1b2a; margin-bottom:6px; }
   .pg-sub { font-size:14px; color:#6b7a8d; margin-bottom:26px; }
@@ -116,7 +120,7 @@
   .tag-quit { display:inline-block; background:#f4b740; color:#5a4200; font-size:9px; font-weight:800; padding:2px 8px; border-radius:10px; margin-left:8px; }
 
   .footer-cta { border:1px solid #cdeedd; border-radius:14px; padding:28px; text-align:center; margin-top:auto; }
-  .footer-cta .brand { font-size:26px; color:#0d1b2a; margin-bottom:8px; }
+  .footer-cta .brand img { height:32px; margin:0 auto 8px; }
   .footer-cta p { font-size:13px; color:#6b7a8d; margin-bottom:10px; }
   .footer-cta a { font-size:14px; font-weight:800; color:#0d1b2a; text-decoration:none; }
 
@@ -134,7 +138,10 @@
 <body>
 
 <div class="toolbar">
-  <span class="toolbar__brand">● <b>HelenaCRM</b> · Sua Simulação</span>
+  <span class="toolbar__brand">
+    <img src="../assets/logo_helenacrm_branco.png" alt="HelenaCRM">
+    · Sua Simulação
+  </span>
   <button class="toolbar__btn" id="btnPdf" onclick="window.print()" style="display:none">⬇ Baixar PDF</button>
 </div>
 
@@ -198,7 +205,7 @@ function renderReport(d) {
   <!-- CAPA -->
   <div class="folha"><div class="capa">
     <div class="capa-top">
-      <div class="brand">Helena<b>CRM</b></div>
+      <div class="brand"><img src="../assets/logo_helenacrm_branco.png" alt="HelenaCRM"></div>
       <div class="pill">📊 Simulação personalizada</div>
     </div>
     <div>
@@ -216,7 +223,10 @@ function renderReport(d) {
 
   <!-- RESUMO EXECUTIVO -->
   <div class="folha"><div class="pagina">
-    <div class="pg-top"><div class="brand">Helena<b>CRM</b></div><div class="pg-top-label">Resumo Executivo</div></div>
+    <div class="pg-top">
+      <div class="brand"><img src="../assets/logo_helenacrm_colorido.png" alt="HelenaCRM"></div>
+      <div class="pg-top-label">Resumo Executivo</div>
+    </div>
     <div class="pg-h2">Resumo Executivo</div>
     <div class="pg-sub">Visão geral dos resultados projetados para o seu modelo de negócio</div>
 
@@ -245,7 +255,10 @@ function renderReport(d) {
 
   <!-- PROJEÇÃO MÊS A MÊS -->
   <div class="folha"><div class="pagina">
-    <div class="pg-top"><div class="brand">Helena<b>CRM</b></div><div class="pg-top-label">Projeção Mensal</div></div>
+    <div class="pg-top">
+      <div class="brand"><img src="../assets/logo_helenacrm_colorido.png" alt="HelenaCRM"></div>
+      <div class="pg-top-label">Projeção Mensal</div>
+    </div>
     <div class="pg-h2">Projeção mês a mês</div>
     <div class="pg-sub">Evolução da sua margem ao longo dos próximos 12 meses</div>
 
@@ -263,7 +276,7 @@ function renderReport(d) {
     </table>
 
     <div class="footer-cta">
-      <div class="brand">Helena<b>CRM</b></div>
+      <div class="brand"><img src="../assets/logo_helenacrm_colorido.png" alt="HelenaCRM"></div>
       <p>A plataforma CRM para WhatsApp White Label para desenvolver o seu negócio.</p>
       <a href="https://www.helenacrm.com" target="_blank">www.helenacrm.com</a>
     </div>
