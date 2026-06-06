@@ -3,93 +3,123 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sua Simulação — Helena CRM</title>
+<title>Sua Simulação — HelenaCRM</title>
 <link rel="icon" type="image/png" href="../assets/logo_helena_simbolo_colorido.png" />
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: Arial, Helvetica, sans-serif; color:#1a1a1a; background:#e9edf0; }
 
-  /* ── Barra de ações (só na tela, some na impressão) ── */
-  .toolbar {
-    position: sticky; top:0; z-index:50;
-    background:#090F0C; color:#fff;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:12px 20px; gap:12px;
-  }
-  .toolbar__brand { color:#00D15E; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
-  .toolbar__btn {
-    background:#00D15E; color:#090F0C; border:none; cursor:pointer;
-    font-size:14px; font-weight:800; padding:10px 20px; border-radius:8px;
-    display:inline-flex; align-items:center; gap:8px;
-  }
-  .toolbar__btn:hover { background:#00b853; }
+  /* ── Toolbar (some na impressão) ── */
+  .toolbar { position:sticky; top:0; z-index:50; background:#0d1b2a; color:#fff;
+    display:flex; align-items:center; justify-content:space-between; padding:12px 20px; gap:12px; }
+  .toolbar__brand { font-size:13px; font-weight:700; letter-spacing:1px; }
+  .toolbar__brand b { color:#00c45a; }
+  .toolbar__btn { background:#00c45a; color:#0d1b2a; border:none; cursor:pointer; font-size:14px;
+    font-weight:800; padding:10px 22px; border-radius:8px; display:inline-flex; align-items:center; gap:8px; }
+  .toolbar__btn:hover { background:#00b050; }
 
-  /* ── Estados (loading / erro) ── */
-  .state {
-    max-width:540px; margin:80px auto; text-align:center; padding:40px 24px;
-    background:#fff; border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,.08);
-  }
+  /* ── Estados ── */
+  .state { max-width:540px; margin:80px auto; text-align:center; padding:40px 24px; background:#fff;
+    border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,.08); }
   .state__icon { font-size:48px; margin-bottom:16px; }
   .state__title { font-size:20px; font-weight:800; color:#111; margin-bottom:8px; }
   .state__msg { font-size:14px; color:#666; line-height:1.6; }
-  .spinner {
-    width:34px; height:34px; border:4px solid #dff0e6; border-top-color:#00D15E;
-    border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 18px;
-  }
+  .spinner { width:34px; height:34px; border:4px solid #dfeaf0; border-top-color:#00c45a;
+    border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 18px; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
-  /* ── Container do relatório (folhas A4) ── */
+  /* ── Folhas A4 ── */
   #report { max-width:210mm; margin:24px auto; }
-  .folha {
-    background:#fff; width:210mm; min-height:auto;
-    margin:0 auto 24px; box-shadow:0 4px 24px rgba(0,0,0,.12);
-    overflow:hidden;
-  }
+  .folha { width:210mm; margin:0 auto 24px; box-shadow:0 4px 24px rgba(0,0,0,.12); overflow:hidden; background:#fff; }
 
-  /* CAPA */
-  .capa {
-    background:#090F0C; width:210mm; min-height:297mm;
-    display:flex; flex-direction:column; justify-content:center; align-items:center;
-    text-align:center; padding:60px 48px;
-  }
-  .capa-logo { color:#00D15E; font-size:11px; font-weight:700; letter-spacing:4px; text-transform:uppercase; margin-bottom:48px; }
-  .capa-nome { color:rgba(255,255,255,0.55); font-size:15px; margin-bottom:8px; }
-  .capa-titulo { color:#fff; font-size:36px; font-weight:900; line-height:1.1; margin-bottom:14px; }
-  .capa-titulo span { color:#00D15E; }
-  .capa-sub { color:rgba(255,255,255,0.35); font-size:12px; margin-bottom:48px; }
-  .capa-valor { color:#00D15E; font-size:64px; font-weight:900; line-height:1; margin-bottom:8px; }
-  .capa-valor-label { color:rgba(255,255,255,0.45); font-size:13px; margin-bottom:36px; }
-  .capa-tier { display:inline-flex; align-items:center; gap:8px; background:rgba(0,209,94,0.1); border:1px solid rgba(0,209,94,0.25); border-radius:100px; padding:10px 24px; color:#00D15E; font-size:13px; font-weight:700; }
+  /* CAPA (escura) */
+  .capa { background:#0d1b2a; min-height:297mm; padding:48px 52px; display:flex; flex-direction:column; }
+  .capa-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:auto; }
+  .brand { font-size:20px; font-weight:800; color:#fff; letter-spacing:-.3px; }
+  .brand b { color:#00c45a; }
+  .pill { border:1px solid #3a5a7a; color:#a0b0c0; font-size:10px; font-weight:700; letter-spacing:2px;
+    text-transform:uppercase; padding:6px 16px; border-radius:20px; }
+  .capa-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#00c45a; margin-bottom:18px; }
+  .capa-h1 { font-size:40px; line-height:1.15; font-weight:900; color:#fff; margin-bottom:22px; }
+  .capa-h1 em { font-style:normal; color:#00c45a; }
+  .capa-sub { font-size:15px; color:#a0b0c0; line-height:1.7; max-width:460px; margin-bottom:40px; }
+  .capa-box { background:linear-gradient(135deg, rgba(0,196,90,.14), rgba(0,196,90,.04));
+    border:1px solid rgba(0,196,90,.3); border-radius:16px; padding:34px 36px; }
+  .capa-box-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#5fcf8e; margin-bottom:10px; }
+  .capa-box-val { font-size:58px; font-weight:900; color:#00c45a; line-height:1; margin-bottom:10px; }
+  .capa-box-desc { font-size:13px; color:#8fa3b5; line-height:1.5; }
+  .capa-disc { font-size:10px; color:#5a6b7d; margin-top:24px; }
 
-  /* PÁGINAS INTERNAS */
-  .pagina { padding:44px 48px; min-height:297mm; }
-  .section-label { font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#00D15E; margin-bottom:5px; }
-  .section-title { font-size:22px; font-weight:900; color:#111; margin-bottom:20px; }
+  /* PÁGINAS BRANCAS */
+  .pagina { padding:44px 52px; min-height:297mm; position:relative; }
+  .pg-top { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px;
+    border-bottom:2px solid #00c45a; margin-bottom:30px; }
+  .pg-top .brand { color:#0d1b2a; font-size:18px; }
+  .pg-top-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#9aabb8; }
+  .pg-h2 { font-size:24px; font-weight:900; color:#0d1b2a; margin-bottom:6px; }
+  .pg-sub { font-size:14px; color:#6b7a8d; margin-bottom:26px; }
 
-  .kpis { display:flex; gap:10px; margin-bottom:22px; }
-  .kpi { flex:1; background:#f7faf8; border:1px solid #dff0e6; border-radius:10px; padding:14px; text-align:center; }
-  .kpi-label { font-size:9px; color:#888; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
-  .kpi-value { font-size:18px; font-weight:900; color:#00A048; }
-  .kpi-value.amber { color:#D97706; }
-  .kpi-sub { font-size:9px; color:#aaa; margin-top:3px; }
+  .destaque { background:#eafaf0; border:1px solid #b9ecca; border-radius:14px; padding:28px; text-align:center; margin-bottom:22px; }
+  .destaque-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#00a048; margin-bottom:8px; }
+  .destaque-val { font-size:40px; font-weight:900; color:#00a048; line-height:1; margin-bottom:8px; }
+  .destaque-desc { font-size:13px; color:#5b6b78; margin-bottom:14px; }
+  .destaque-pill { display:inline-block; background:#f4b740; color:#5a4200; font-size:12px; font-weight:700; padding:7px 18px; border-radius:20px; }
 
-  .config-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px; }
-  .config-item { background:#f9fafb; border:1px solid #eee; border-radius:7px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; }
-  .config-key { font-size:10px; color:#666; }
-  .config-val { font-size:11px; font-weight:700; color:#111; }
+  .kpis { display:flex; gap:12px; margin-bottom:30px; }
+  .kpi { flex:1; border-radius:12px; padding:18px 16px; text-align:center; border:1px solid #e7ebf0; }
+  .kpi.green { background:#f2fbf6; border-color:#cdeedd; }
+  .kpi.amber { background:#fff8ec; border-color:#f5e3bf; }
+  .kpi.slate { background:#f7f9fc; }
+  .kpi-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#8a98a6; margin-bottom:8px; }
+  .kpi-val { font-size:22px; font-weight:900; }
+  .kpi.green .kpi-val { color:#00a048; }
+  .kpi.amber .kpi-val { color:#d98a00; }
+  .kpi.slate .kpi-val { color:#0d1b2a; }
 
-  .tabela { width:100%; border-collapse:collapse; margin-bottom:22px; }
-  .tabela thead tr { background:#111; }
-  .tabela thead th { padding:7px 12px; font-size:9px; font-weight:700; color:#fff; text-align:right; letter-spacing:0.5px; }
-  .tabela thead th:first-child { text-align:left; }
+  .cfg-title { font-size:15px; font-weight:800; color:#0d1b2a; margin-bottom:14px; }
+  .cfg-row { display:flex; align-items:center; justify-content:space-between; padding:13px 2px; border-bottom:1px solid #eef1f5; font-size:13px; }
+  .cfg-row:last-child { border-bottom:none; }
+  .cfg-k { color:#6b7a8d; }
+  .cfg-v { font-weight:700; color:#0d1b2a; }
+  .cfg-v.green { color:#00a048; }
 
-  .cta-box { background:linear-gradient(135deg,#00D15E,#00A048); border-radius:14px; padding:28px; text-align:center; margin-top:20px; }
-  .cta-titulo { color:#fff; font-size:18px; font-weight:900; margin-bottom:8px; }
-  .cta-sub { color:rgba(255,255,255,0.85); font-size:12px; margin-bottom:14px; line-height:1.5; }
-  .cta-contato { color:#fff; font-size:13px; font-weight:700; margin-bottom:6px; }
-  .cta-disclaimer { color:rgba(255,255,255,0.55); font-size:9px; }
+  /* pág 3 */
+  .boxes2 { display:flex; gap:14px; margin-bottom:26px; }
+  .box2 { flex:1; border-radius:12px; padding:18px 20px; border:1px solid #e7ebf0; }
+  .box2.red { background:#fdf1f1; border-color:#f6d6d6; }
+  .box2.green { background:#f2fbf6; border-color:#cdeedd; }
+  .box2-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#9aabb8; margin-bottom:8px; }
+  .box2-val { font-size:24px; font-weight:900; }
+  .box2.red .box2-val { color:#e23b3b; }
+  .box2.green .box2-val { color:#00a048; }
+  .box2-desc { font-size:11px; color:#8a98a6; margin-top:6px; }
 
-  /* ── Impressão: vira PDF A4 perfeito ── */
+  .chart { border:1px solid #eef1f5; border-radius:12px; padding:22px 20px 12px; margin-bottom:26px; }
+  .chart-bars { display:flex; align-items:flex-end; gap:6px; height:120px; }
+  .chart-col { flex:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; }
+  .chart-bar { width:100%; border-radius:4px 4px 0 0; background:#00c45a; }
+  .chart-bar.amber { background:#f4b740; }
+  .chart-labels { display:flex; gap:6px; margin-top:6px; }
+  .chart-labels span { flex:1; text-align:center; font-size:9px; color:#9aabb8; }
+
+  .tbl-title { font-size:15px; font-weight:800; color:#0d1b2a; margin-bottom:12px; }
+  table.det { width:100%; border-collapse:collapse; }
+  table.det th { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#9aabb8;
+    text-align:right; padding:10px 12px; border-bottom:2px solid #eef1f5; }
+  table.det th:first-child { text-align:left; }
+  table.det td { font-size:13px; color:#3d4d5c; text-align:right; padding:11px 12px; border-bottom:1px solid #f2f5f8; }
+  table.det td:first-child { text-align:left; color:#0d1b2a; }
+  table.det td.margem { color:#00a048; font-weight:700; }
+  table.det td.acc { font-weight:700; color:#0d1b2a; }
+  table.det tr.quitado td { background:#fff8ec; }
+  .tag-quit { display:inline-block; background:#f4b740; color:#5a4200; font-size:9px; font-weight:800; padding:2px 8px; border-radius:10px; margin-left:8px; }
+
+  .footer-cta { border:1px solid #cdeedd; border-radius:14px; padding:28px; text-align:center; margin-top:auto; }
+  .footer-cta .brand { font-size:26px; color:#0d1b2a; margin-bottom:8px; }
+  .footer-cta p { font-size:13px; color:#6b7a8d; margin-bottom:10px; }
+  .footer-cta a { font-size:14px; font-weight:800; color:#0d1b2a; text-decoration:none; }
+
+  /* ── Impressão A4 ── */
   @page { margin:0; size:A4; }
   @media print {
     body { background:#fff; }
@@ -103,178 +133,159 @@
 <body>
 
 <div class="toolbar">
-  <span class="toolbar__brand">● Helena CRM · Sua Simulação</span>
-  <button class="toolbar__btn" id="btnPdf" onclick="window.print()" style="display:none">
-    ⬇ Baixar PDF
-  </button>
+  <span class="toolbar__brand">● <b>HelenaCRM</b> · Sua Simulação</span>
+  <button class="toolbar__btn" id="btnPdf" onclick="window.print()" style="display:none">⬇ Baixar PDF</button>
 </div>
 
 <div id="app">
-  <div class="state">
-    <div class="spinner"></div>
+  <div class="state"><div class="spinner"></div>
     <div class="state__title">Carregando sua simulação…</div>
-    <div class="state__msg">Um instante, estamos preparando seus números.</div>
-  </div>
+    <div class="state__msg">Um instante, preparando seus números.</div></div>
 </div>
 
 <script>
 /* ══════════════════════════════════════════════════════════════
-   Esta página é autossuficiente: os dados da simulação vêm
-   codificados no próprio link (?d=...), gerado pela calculadora.
-   Não precisa de banco de dados, chaves nem configuração.
+   Página autossuficiente: os dados vêm codificados no link (?d=).
 ══════════════════════════════════════════════════════════════ */
+const TAXA_SETUP = { pro: 4900, premium: 7900 };
 
-/* ─── Helpers ─── */
-const brl = (v) => {
-  const n = Number(v) || 0;
-  if (Math.abs(n) < 0.01) return 'R$ 0';
-  return 'R$ ' + Math.round(n).toLocaleString('pt-BR');
-};
+const brl = (v) => { const n = Number(v) || 0; return 'R$ ' + Math.round(n).toLocaleString('pt-BR'); };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* ─── Renderiza o relatório a partir dos dados (d = body normalizado) ─── */
 function renderReport(d) {
-  const linhasTabela = (d.projecao_mensal || []).map((m, i) => {
-    const cor = m.margem >= 0 ? '#00A048' : '#DC2626';
-    const bg  = i % 2 === 0 ? '#f8f9fa' : '#ffffff';
-    return `<tr style="background:${bg}">
-      <td style="padding:6px 12px;font-size:11px;color:#444">${m.mes}</td>
-      <td style="padding:6px 12px;font-size:11px;color:#444;text-align:right">${m.clientes}</td>
-      <td style="padding:6px 12px;font-size:11px;color:#444;text-align:right">${brl(m.receita)}</td>
-      <td style="padding:6px 12px;font-size:11px;color:#444;text-align:right">${brl(m.custo)}</td>
-      <td style="padding:6px 12px;font-size:11px;font-weight:700;color:${cor};text-align:right">${brl(m.margem)}</td>
+  const proj = Array.isArray(d.projecao_mensal) ? d.projecao_mensal : [];
+  const parcelas   = Number(d.parcelas) || 10;
+  const taxaSetup  = TAXA_SETUP[d.plano] != null ? TAXA_SETUP[d.plano] : 4900;
+  const parcelaSetup = Math.round(taxaSetup / Math.max(parcelas, 1));
+  const mesRec     = Number(d.mes_recuperacao) || parcelas;
+
+  // médias
+  const nDur = Math.min(parcelas, proj.length) || 1;
+  const custoMedio = Math.round(proj.slice(0, nDur).reduce((s,m)=>s+(Number(m.custo)||0),0) / nDur);
+  const posMeses = proj.slice(parcelas);
+  const resultadoMedio = posMeses.length
+    ? Math.round(posMeses.reduce((s,m)=>s+(Number(m.margem)||0),0) / posMeses.length) : 0;
+
+  // acumulado
+  let acc = 0;
+  const acumulado = proj.map(m => (acc += (Number(m.margem)||0)));
+
+  // chart
+  const maxMarg = Math.max(...proj.map(m => Math.abs(Number(m.margem)||0)), 1);
+  const barras = proj.map((m,i) => {
+    const h = Math.max((Math.abs(Number(m.margem)||0) / maxMarg) * 100, 3);
+    const amber = (i+1) === mesRec ? ' amber' : '';
+    return `<div class="chart-col"><div class="chart-bar${amber}" style="height:${h}%"></div></div>`;
+  }).join('');
+  const labels = proj.map(m => `<span>${esc(m.mes)}</span>`).join('');
+
+  // tabela detalhada
+  const linhas = proj.map((m,i) => {
+    const quit = (i+1) === mesRec;
+    return `<tr class="${quit?'quitado':''}">
+      <td>${esc(m.mes)}${quit?'<span class="tag-quit">✓ quitado</span>':''}</td>
+      <td>${esc(m.clientes)}</td>
+      <td class="margem">+${brl(m.margem)}</td>
+      <td class="acc">${brl(acumulado[i])}</td>
     </tr>`;
   }).join('');
 
-  const extras = [
-    d.vende_ia          && 'Agentes de IA',
-    d.cobra_suporte     && 'Suporte & Consultoria',
-    d.cobra_implantacao && 'Taxa de Implantação',
-    d.vende_usuarios    && 'Usuários Adicionais',
-    d.vende_canais      && 'Canais Adicionais',
-  ].filter(Boolean);
-  const extrasHtml = extras.length
-    ? extras.map(e => `<span style="background:rgba(0,209,94,0.08);border:1px solid rgba(0,209,94,0.2);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:600;color:#00A048;margin:3px;display:inline-block">✓ ${esc(e)}</span>`).join('')
-    : '<span style="color:#aaa;font-size:11px">Nenhuma ativada</span>';
-
-  const dataGerada = d.data_hora
-    ? esc(d.data_hora)
-    : new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  const planoNome   = d.plano === 'pro' ? 'HelenaCRM Pro' : 'HelenaCRM Premium';
+  const licencaNome = d.licenca === 'base' ? 'Base' : 'Base + IA Ilimitado';
 
   return `
   <!-- CAPA -->
-  <div class="folha">
-    <div class="capa">
-      <div class="capa-logo">● Helena CRM &nbsp;·&nbsp; Simulação de Parceiro</div>
-      <div class="capa-nome">Simulação personalizada de parceiro</div>
-      <h1 class="capa-titulo">Seu potencial com<br/><span>a Helena CRM</span></h1>
-      <div class="capa-sub">Simulação gerada em ${dataGerada}</div>
-      <div class="capa-valor">${brl(d.lucro_liquido_12m)}</div>
-      <div class="capa-valor-label">de lucro projetado em 12 meses</div>
-      <div class="capa-tier">${esc(d.perfil_tier)}</div>
+  <div class="folha"><div class="capa">
+    <div class="capa-top">
+      <div class="brand">Helena<b>CRM</b></div>
+      <div class="pill">📊 Simulação personalizada</div>
     </div>
-  </div>
-
-  <!-- PÁGINA 2: RESUMO -->
-  <div class="folha">
-    <div class="pagina">
-      <div class="section-label">Resumo da simulação</div>
-      <div class="section-title">Seus números em destaque</div>
-
-      <div class="kpis">
-        <div class="kpi">
-          <div class="kpi-label">Lucro total 12 meses</div>
-          <div class="kpi-value">${brl(d.lucro_liquido_12m)}</div>
-          <div class="kpi-sub">parcelas descontadas</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Lucro no mês 1</div>
-          <div class="kpi-value">${brl(d.lucro_mes1)}</div>
-          <div class="kpi-sub">primeiros clientes</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Lucro no mês 12</div>
-          <div class="kpi-value">${brl(d.lucro_mes12)}</div>
-          <div class="kpi-sub">${esc(d.clientes_mes12)} clientes</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Retorno (ROI)</div>
-          <div class="kpi-value amber">${esc(d.retorno_pct)}%</div>
-          <div class="kpi-sub">sobre investido</div>
-        </div>
+    <div>
+      <div class="capa-label">Relatório de potencial · ${esc(d.data_hora || '')}</div>
+      <h1 class="capa-h1">Veja o <em>potencial</em><br>do seu negócio.</h1>
+      <p class="capa-sub">Esta é a simulação personalizada do seu modelo de negócio como parceiro white label da HelenaCRM, baseada nas configurações que você escolheu.</p>
+      <div class="capa-box">
+        <div class="capa-box-label">Seu lucro projetado em 12 meses</div>
+        <div class="capa-box-val">${brl(d.lucro_liquido_12m)}</div>
+        <div class="capa-box-desc">já descontando todos os custos da plataforma e a implantação parcelada em ${parcelas}x</div>
       </div>
-
-      <div class="section-label">Configuração simulada</div>
-      <div style="font-size:18px;font-weight:900;color:#111;margin-bottom:16px">O que foi simulado</div>
-
-      <div class="config-grid">
-        <div class="config-item"><span class="config-key">Plano da plataforma</span><span class="config-val">${d.plano === 'pro' ? 'Pro' : 'Premium'}</span></div>
-        <div class="config-item"><span class="config-key">Licença por cliente</span><span class="config-val">${d.licenca === 'base' ? 'Base' : 'Base + IA Ilimitado'}</span></div>
-        <div class="config-item"><span class="config-key">Clientes ativos hoje</span><span class="config-val">${esc(d.clientes)} clientes</span></div>
-        <div class="config-item"><span class="config-key">Novos clientes/mês</span><span class="config-val">+${esc(d.novos_por_mes)}/mês</span></div>
-        <div class="config-item"><span class="config-key">Mensalidade/cliente</span><span class="config-val">${brl(d.mensalidade_crm)}/mês</span></div>
-        <div class="config-item"><span class="config-key">Parcelamento implantação</span><span class="config-val">${d.parcelas === 1 ? 'À vista' : esc(d.parcelas) + 'x'}</span></div>
-        <div class="config-item"><span class="config-key">Parcelas quitadas</span><span class="config-val" style="color:#D97706">Mês ${esc(d.mes_recuperacao)}</span></div>
-        <div class="config-item"><span class="config-key">Clientes no mês 12</span><span class="config-val">${esc(d.clientes_mes12)} clientes</span></div>
-      </div>
-
-      <div class="section-label">Receitas adicionais ativas</div>
-      <div style="margin-top:8px">${extrasHtml}</div>
+      <div class="capa-disc">Esta é uma simulação estimativa. Os valores reais podem variar. Veja os detalhes ao final do documento.</div>
     </div>
-  </div>
+  </div></div>
 
-  <!-- PÁGINA 3: PROJEÇÃO + CTA -->
-  <div class="folha">
-    <div class="pagina">
-      <div class="section-label">Projeção mensal</div>
-      <div class="section-title">Evolução mês a mês</div>
+  <!-- RESUMO EXECUTIVO -->
+  <div class="folha"><div class="pagina">
+    <div class="pg-top"><div class="brand">Helena<b>CRM</b></div><div class="pg-top-label">Resumo Executivo</div></div>
+    <div class="pg-h2">Resumo Executivo</div>
+    <div class="pg-sub">Visão geral dos resultados projetados para o seu modelo de negócio</div>
 
-      <table class="tabela">
-        <thead>
-          <tr>
-            <th style="text-align:left">Mês</th>
-            <th>Clientes</th>
-            <th>Receita</th>
-            <th>Custos</th>
-            <th>Margem</th>
-          </tr>
-        </thead>
-        <tbody>${linhasTabela}</tbody>
-      </table>
-
-      <div class="cta-box">
-        <div class="cta-titulo">Pronto para transformar isso em realidade?</div>
-        <div class="cta-sub">Fale com um especialista Helena e receba uma proposta personalizada baseada nesta simulação. Nossa equipe está pronta para te ajudar a dar o próximo passo.</div>
-        <div class="cta-contato">💬 Fale com o comercial Helena</div>
-        <div class="cta-disclaimer">Simulação para fins informativos. Valores reais podem variar conforme mercado e capacidade operacional.</div>
-      </div>
+    <div class="destaque">
+      <div class="destaque-label">Lucro acumulado em 12 meses</div>
+      <div class="destaque-val">${brl(d.lucro_liquido_12m)}</div>
+      <div class="destaque-desc">Já descontando custos e parcelas da implantação</div>
+      <div class="destaque-pill">Perfil: ${esc(d.perfil_tier)}</div>
     </div>
-  </div>`;
+
+    <div class="kpis">
+      <div class="kpi green"><div class="kpi-label">Lucro no 1º mês</div><div class="kpi-val">${brl(d.lucro_mes1)}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Retorno em 12m</div><div class="kpi-val">${esc(d.retorno_pct)}%</div></div>
+      <div class="kpi slate"><div class="kpi-label">Parcelas quitadas</div><div class="kpi-val">Mês ${esc(mesRec)}</div></div>
+    </div>
+
+    <div class="cfg-title">Sua configuração</div>
+    <div class="cfg-row"><span class="cfg-k">Plano da plataforma</span><span class="cfg-v">${planoNome}</span></div>
+    <div class="cfg-row"><span class="cfg-k">Licença escolhida</span><span class="cfg-v">${licencaNome}</span></div>
+    <div class="cfg-row"><span class="cfg-k">Parcelamento da implantação</span><span class="cfg-v">${parcelas}x de ${brl(parcelaSetup)}</span></div>
+    <div class="cfg-row"><span class="cfg-k">Clientes atuais</span><span class="cfg-v">${esc(d.clientes)} clientes</span></div>
+    <div class="cfg-row"><span class="cfg-k">Novos clientes / mês</span><span class="cfg-v">+${esc(d.novos_por_mes)} clientes / mês</span></div>
+    <div class="cfg-row"><span class="cfg-k">Valor cobrado por cliente</span><span class="cfg-v">${brl(d.mensalidade_crm)} / mês</span></div>
+    <div class="cfg-row"><span class="cfg-k">Projeção em 12 meses</span><span class="cfg-v green">${esc(d.clientes_mes12)} clientes ativos</span></div>
+  </div></div>
+
+  <!-- PROJEÇÃO MÊS A MÊS -->
+  <div class="folha"><div class="pagina">
+    <div class="pg-top"><div class="brand">Helena<b>CRM</b></div><div class="pg-top-label">Projeção Mensal</div></div>
+    <div class="pg-h2">Projeção mês a mês</div>
+    <div class="pg-sub">Evolução da sua margem ao longo dos próximos 12 meses</div>
+
+    <div class="boxes2">
+      <div class="box2 red"><div class="box2-label">Custo médio · Meses 1–${parcelas}</div><div class="box2-val">${brl(custoMedio)}/mês</div><div class="box2-desc">com a parcela da implantação (${parcelas}x)</div></div>
+      <div class="box2 green"><div class="box2-label">Resultado médio · Meses ${Math.min(parcelas+1,12)}–12</div><div class="box2-val">+${brl(resultadoMedio)}/mês</div><div class="box2-desc">após quitar implantação, com base ampliada</div></div>
+    </div>
+
+    <div class="chart"><div class="chart-bars">${barras}</div><div class="chart-labels">${labels}</div></div>
+
+    <div class="tbl-title">Detalhamento por mês</div>
+    <table class="det">
+      <thead><tr><th>Mês</th><th>Clientes</th><th>Margem (R$)</th><th>Acumulado (R$)</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+
+    <div class="footer-cta">
+      <div class="brand">Helena<b>CRM</b></div>
+      <p>A plataforma CRM para WhatsApp White Label para desenvolver o seu negócio.</p>
+      <a href="https://www.helenacrm.com" target="_blank">www.helenacrm.com</a>
+    </div>
+  </div></div>`;
 }
 
-/* ─── Estados de erro ─── */
 function showState(icon, title, msg) {
   document.getElementById('app').innerHTML =
     `<div class="state"><div class="state__icon">${icon}</div>
-     <div class="state__title">${title}</div>
-     <div class="state__msg">${msg}</div></div>`;
+     <div class="state__title">${title}</div><div class="state__msg">${msg}</div></div>`;
 }
 
-/* ─── Lê a simulação do próprio link (?d=) e renderiza ─── */
 function init() {
   const encoded = new URLSearchParams(location.search).get('d');
-  if (!encoded) {
-    return showState('🔎', 'Link incompleto', 'Esta página precisa do link completo da simulação. Verifique o link recebido.');
-  }
+  if (!encoded) return showState('🔎','Link incompleto','Esta página precisa do link completo da simulação.');
   try {
-    const json = decodeURIComponent(escape(atob(decodeURIComponent(encoded))));
-    const data = JSON.parse(json);
+    const data = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(encoded)))));
     document.getElementById('app').innerHTML = `<div id="report"></div>`;
     document.getElementById('report').innerHTML = renderReport(data);
     document.getElementById('btnPdf').style.display = 'inline-flex';
-    document.title = `Simulação de ${data.nome || 'Parceiro'} — Helena CRM`;
+    document.title = 'Sua Simulação — HelenaCRM';
   } catch (err) {
-    showState('⚠️', 'Link inválido', 'Não foi possível ler os dados desta simulação. O link pode estar incompleto ou corrompido.');
+    showState('⚠️','Link inválido','Não foi possível ler os dados desta simulação. O link pode estar incompleto.');
     console.error(err);
   }
 }
