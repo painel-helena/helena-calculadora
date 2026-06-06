@@ -240,22 +240,47 @@ function Timeline({ hoje, paybackMes, mes12, parcelaSetup, parcelas }) {
 ════════════════════════════════════════ */
 const RD_FORM_ID    = 'calculadora-simulacao-e99450ea44f139e159ab';
 const RD_FORM_TOKEN = 'UA-199540720-1';
+const N8N_WEBHOOK   = 'https://automation.helena.run/webhook/calculadora-white-label';
 
 function RdForm({ simUrl }) {
   const injectRef = useRef(() => false);
+  const dataRef   = useRef({ simUrl });
+  dataRef.current = { simUrl };
 
-  /* Preenche o campo oculto do link e o esconde do lead */
+  /* Preenche o campo oculto do link, esconde o campo, e engata o envio pro n8n */
   injectRef.current = () => {
     const box = document.getElementById(RD_FORM_ID);
     if (!box) return false;
     const campo = box.querySelector('[name="cf_link_da_simulacao"]');
     if (!campo) return false;
     const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-    setter.call(campo, simUrl);
+    setter.call(campo, dataRef.current.simUrl);
     campo.dispatchEvent(new Event('input',  { bubbles: true }));
     campo.dispatchEvent(new Event('change', { bubbles: true }));
     const wrap = campo.closest('.bricks-form__field') || campo.closest('[class*="field"]') || campo.parentElement;
     if (wrap) wrap.style.display = 'none';
+
+    /* Ao enviar o form, manda os dados DIRETO pro n8n (banco/planilha + card Helena),
+       em paralelo com o envio pro RD. Garante o registro mesmo se o RD falhar. */
+    const form = box.querySelector('form');
+    if (form && !form.__n8nHooked) {
+      form.__n8nHooked = true;
+      form.addEventListener('submit', () => {
+        const val = (nm) => { const el = box.querySelector('[name="' + nm + '"]'); return el ? el.value : ''; };
+        const payload = {
+          nome:     val('name'),
+          empresa:  val('company'),
+          email:    val('email'),
+          whatsapp: val('cf_whatsapp'),
+          sim_url:  dataRef.current.simUrl,
+          origem:   'calculadora-mrr',
+        };
+        try {
+          fetch(N8N_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload), keepalive: true });
+        } catch (e) {}
+      }, true);
+    }
     return true;
   };
 
