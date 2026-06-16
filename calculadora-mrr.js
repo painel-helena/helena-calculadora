@@ -523,23 +523,37 @@ function Calculadora() {
   const taxaSetup = TAXA_SETUP[plano];
   const parcelaSetup = taxaSetup / Math.max(parcelas, 1);
   const custoAppMensal = plano === 'pro' ? querDominio ? CUSTO_DOMINIO_PRO : 0 : CUSTO_APP_PREMIUM;
-  const custoFixo = CUSTO_PLATAFORMA + custoAppMensal;
-  const custoFixoTotal = custoFixo + parcelaSetup;
   const custoExtraUsers = vendeUsers ? custoUsuariosExtras(extraUsers) : 0;
   const custoExtraCanais = vendeCanais ? custoCanaisExtras(extraCanais) : 0;
   const custoExtraIA = vendeIA ? qtdIA * CUSTO_IA_AGENTE : 0;
   const custoPorCli = custoExtraUsers + custoExtraCanais + custoExtraIA;
+
+  // ── CONSUMAÇÃO ──────────────────────────────────────────────────────────
+  // A plataforma (R$ 659,90) é um MÍNIMO mensal que já inclui um tanto de uso.
+  // Os adicionais (usuários/canais/IA) da operação INTEIRA são absorvidos
+  // DENTRO dos 659,90; só o que ultrapassar é cobrado a mais.
+  // Domínio próprio, App Premium e a parcela do setup somam à parte (não entram).
+  const licenciamento = nCli => Math.max(CUSTO_PLATAFORMA, custoPorCli * Math.max(nCli, 0));
+  const custoFixoBase = nCli => licenciamento(nCli) + custoAppMensal; // sem parcela
+  const custoRecorr = nCli => custoFixoBase(nCli) + parcelaSetup; // com parcela
+  const custoFixo = custoFixoBase(clientes);
+  const custoFixoTotal = custoRecorr(clientes);
   const recPorCli = ticketCRM + (cobraSup ? ticketSup : 0);
-  const margemPorCli = recPorCli - custoPorCli;
-  const breakeven = margemPorCli > 0 ? Math.ceil(custoFixoTotal / margemPorCli) : null;
-  const custoMensal = custoFixoTotal + custoPorCli * clientes;
+  // Break-even: menor nº de clientes em que a receita recorrente cobre o custo recorrente
+  // (calculado por iteração porque o custo tem o "degrau" da consumação).
+  const breakeven = (() => {
+    if (recPorCli <= 0) return null;
+    for (let n = 1; n <= 500; n++) if (n * recPorCli >= custoRecorr(n)) return n;
+    return null;
+  })();
+  const custoMensal = custoFixoTotal; // já inclui os adicionais (absorvidos ou não) + app + parcela
   const mrrBase = ticketCRM * clientes;
   const mrrSup = cobraSup ? ticketSup * clientes : 0;
   const recImpl = cobraImpl ? valorImpl * novos : 0;
   const recTotal = mrrBase + mrrSup + recImpl;
   const margemMensal = recTotal - custoMensal;
   const margemPct = recTotal > 0 ? margemMensal / recTotal * 100 : 0;
-  const ticketMinimo = Math.ceil((custoFixoTotal / Math.max(clientes, 1) + custoPorCli) / 10) * 10;
+  const ticketMinimo = Math.ceil(custoRecorr(clientes) / Math.max(clientes, 1) / 10) * 10;
   const lucroPorCli = recPorCli - ticketMinimo;
   const lucroMensal = lucroPorCli * clientes;
   const abaixoMinimo = lucroPorCli < 0;
@@ -553,7 +567,8 @@ function Calculadora() {
       const mrr = ticketCRM * cli;
       const sup = cobraSup ? ticketSup * cli : 0;
       const impl = cobraImpl ? valorImpl * novos : 0;
-      const custoMes = (i + 1 <= parcelas ? custoFixoTotal : custoFixo) + custoPorCli * cli;
+      const lic = Math.max(CUSTO_PLATAFORMA, custoPorCli * cli); // consumação do mês
+      const custoMes = lic + custoAppMensal + (i + 1 <= parcelas ? parcelaSetup : 0);
       const margem = mrr + sup + impl - custoMes;
       return {
         mes: i + 1,
@@ -565,7 +580,7 @@ function Calculadora() {
         cli
       };
     });
-  }, [clientes, novos, ticketCRM, cobraImpl, valorImpl, cobraSup, ticketSup, custoFixo, custoFixoTotal, custoPorCli, parcelas]);
+  }, [clientes, novos, ticketCRM, cobraImpl, valorImpl, cobraSup, ticketSup, custoPorCli, custoAppMensal, parcelaSetup, parcelas]);
   const ganhoLiquido12 = projecao.reduce((s, d) => s + d.margem, 0);
   const marg12 = projecao[11].margem;
   const marg1 = projecao[0].margem;
