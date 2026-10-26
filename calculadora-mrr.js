@@ -909,13 +909,13 @@ function Calculadora() {
     }
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-1.5 h-1.5 rounded-full bg-g-400 animate-pulse"
-  }), "DESCUBRA O POTENCIAL DO SEU NEGÓCIO"), /*#__PURE__*/React.createElement("h1", {
+  }), "SIMULADOR PARA PARCEIROS WHITE LABEL"), /*#__PURE__*/React.createElement("h1", {
     className: "text-4xl md:text-[54px] font-900 leading-[1.05] mb-5 tracking-tight"
-  }, "Quanto seu negócio pode", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+  }, "Monte sua operação de CRM", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
     className: "gt"
-  }, "faturar com a Helena?")), /*#__PURE__*/React.createElement("p", {
+  }, "com a sua marca")), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed"
-  }, "Configure seu modelo, ative as fontes de receita e veja em tempo real o retorno sobre o seu investimento — mês a mês.")), /*#__PURE__*/React.createElement("main", {
+  }, "A Helena é a plataforma. A marca, o preço e a relação com o cliente são seus. Simule os custos, defina sua mensalidade e veja a margem real da operação — mês a mês.")), /*#__PURE__*/React.createElement("main", {
     className: "max-w-6xl mx-auto px-4 pb-24 grid lg:grid-cols-[1fr_390px] gap-5 items-start"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex flex-col gap-4"
@@ -1043,7 +1043,7 @@ function Calculadora() {
     className: "border-t border-brand-border/40 pt-4 space-y-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-xs text-slate-500 font-500"
-  }, "Ative fontes de receita adicionais"), [{
+  }, "O que você também pode oferecer aos seus clientes"), [{
     key: 'users',
     icon: '👤',
     label: 'Usuários Adicionais',
@@ -1498,7 +1498,7 @@ function Calculadora() {
     text: "Soma das margens mensais dos 12 meses projetados. Parcelas da implantação já descontadas mês a mês."
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-xs font-700 uppercase tracking-widest text-slate-500 mb-2"
-  }, "Seu lucro em 12 meses")), /*#__PURE__*/React.createElement("div", {
+  }, "Margem acumulada em 12 meses")), /*#__PURE__*/React.createElement("div", {
     className: "text-5xl font-900 glow-green mb-1",
     style: {
       color: ganhoLiquido12 > 0 ? '#00D15E' : '#EF4444'
@@ -1660,9 +1660,9 @@ function Calculadora() {
     className: "rounded-2xl border border-red-700/20 bg-red-950/30 px-4 py-3 pulse2"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-2 text-xs text-red-400 font-600"
-  }, /*#__PURE__*/React.createElement("span", null, "⏰"), "Cada mês de espera = ", /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("span", null, "⏰"), "Cada mês sem operar = ", /*#__PURE__*/React.createElement("span", {
     className: "font-900 text-red-300"
-  }, brl(perdidoMes)), " deixados na mesa")), /*#__PURE__*/React.createElement("div", {
+  }, brl(perdidoMes)), " de margem que deixa de entrar")), /*#__PURE__*/React.createElement("div", {
     className: `rounded-2xl border px-4 py-3.5 text-sm leading-relaxed font-500 ${toneCls[insight.tone]}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "mr-1.5"
@@ -1673,7 +1673,7 @@ function Calculadora() {
     className: "text-center mb-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-base font-800 text-slate-100 mb-1"
-  }, "Quer este resultado para o seu negócio?"), /*#__PURE__*/React.createElement("div", {
+  }, "Quer avaliar esse modelo para o seu negócio?"), /*#__PURE__*/React.createElement("div", {
     className: "text-xs text-slate-500"
   }, "Um especialista Helena monta um plano personalizado com base nesta simulação.")), /*#__PURE__*/React.createElement("button", {
     onClick: () => setStep(1),
@@ -1683,7 +1683,7 @@ function Calculadora() {
       color: '#090F0C',
       boxShadow: '0 6px 28px #00D15E28'
     }
-  }, "Quero este resultado →"), /*#__PURE__*/React.createElement("div", {
+  }, "Falar com um especialista →"), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mt-4"
   }, [`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes ? `⚡ Parcelas quitadas no mês ${paybackMes}` : ''].filter(Boolean).map(t => /*#__PURE__*/React.createElement("div", {
     key: t,
