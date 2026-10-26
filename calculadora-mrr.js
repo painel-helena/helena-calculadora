@@ -1,4 +1,4 @@
-/* Pre-compilado (sem Babel no navegador). Fonte: calculadora-mrr.src.js */
+/* FONTE JSX editavel — recompilar antes de subir. NAO e este que vai pro ar. */
 const {
   useState,
   useMemo,
@@ -10,14 +10,27 @@ const {
 } = ReactDOM;
 
 /* ─── Constants ──────────────────────── */
-const CUSTO_PLATAFORMA = 659.90;
+const CUSTO_PLATAFORMA = 659.80; // minimo mensal (consumacao) da operacao
 const CUSTO_DOMINIO_PRO = 190.00;
 const CUSTO_APP_PREMIUM = 900.00;
 const TAXA_SETUP = {
   pro: 4900,
   premium: 7900
 };
-const CUSTO_IA_AGENTE = 50.00;
+const CUSTO_IA_AGENTE = 50.00; // agente de IA avulso (so na licenca base)
+
+/* Licenca por CONTA ATIVA (3 usuarios + 1 canal inclusos) */
+const LICENCA_BASE = 149.90;
+const LICENCA_IA = 199.90; // base + Agentes de IA ilimitado
+const custoLicenca = lic => lic === 'ia' ? LICENCA_IA : LICENCA_BASE;
+
+/* Ligacao (voz) */
+const CUSTO_LIG_CANAL = 49.90;
+const CUSTO_LIG_USER_SEM = 3.49;
+const CUSTO_LIG_USER_COM = 4.99;
+function custoLigacao(canais, usuarios, gravacao) {
+  return canais * CUSTO_LIG_CANAL + usuarios * (gravacao ? CUSTO_LIG_USER_COM : CUSTO_LIG_USER_SEM);
+}
 function custoUsuariosExtras(qtd) {
   if (qtd <= 0) return 0;
   const f1 = Math.min(qtd, 17);
@@ -46,38 +59,71 @@ const brl = (v, d = 0) => Math.abs(v) < 0.01 ? 'R$ 0' : v.toLocaleString('pt-BR'
 });
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 const num = v => v.toLocaleString('pt-BR');
-function getTier(mrr12) {
-  if (mrr12 >= 200000) return {
-    id: 'platinum',
-    label: 'Parceiro Elite',
-    color: '#00D15E',
-    glyph: '💎',
-    cls: 'tier-platinum',
-    desc: 'Top 5% da rede Helena'
-  };
-  if (mrr12 >= 80000) return {
-    id: 'gold',
-    label: 'Parceiro Ouro',
-    color: '#EAB308',
-    glyph: '🏆',
-    cls: 'tier-gold',
-    desc: 'Alta performance'
-  };
-  if (mrr12 >= 30000) return {
-    id: 'silver',
-    label: 'Parceiro Prata',
-    color: '#94A3B8',
-    glyph: '⭐',
-    cls: 'tier-silver',
-    desc: 'Crescimento acelerado'
-  };
+
+/* Niveis oficiais do programa de parceiros — pelo FATURAMENTO MENSAL do parceiro */
+const NIVEIS = [{
+  id: 'diamond',
+  label: 'Diamond',
+  min: 100001,
+  color: '#A78BFA',
+  glyph: '\uD83D\uDCA0',
+  cls: 'tier-diamond',
+  desc: 'Acima de R$ 100 mil/mes'
+}, {
+  id: 'platinum',
+  label: 'Platinum',
+  min: 50001,
+  color: '#22D3EE',
+  glyph: '\uD83D\uDC8E',
+  cls: 'tier-platinum',
+  desc: 'R$ 50 mil a R$ 100 mil/mes'
+}, {
+  id: 'gold',
+  label: 'Gold',
+  min: 25001,
+  color: '#EAB308',
+  glyph: '\uD83C\uDFC6',
+  cls: 'tier-gold',
+  desc: 'R$ 25 mil a R$ 50 mil/mes'
+}, {
+  id: 'silver',
+  label: 'Silver',
+  min: 10001,
+  color: '#94A3B8',
+  glyph: '\uD83E\uDD48',
+  cls: 'tier-silver',
+  desc: 'R$ 10 mil a R$ 25 mil/mes'
+}, {
+  id: 'parceiro',
+  label: 'Parceiro',
+  min: 1,
+  color: '#00D15E',
+  glyph: '\uD83E\uDD1D',
+  cls: 'tier-parceiro',
+  desc: 'Ate R$ 10 mil/mes'
+}, {
+  id: 'embarque',
+  label: 'Embarque',
+  min: 0,
+  color: '#64748B',
+  glyph: '\uD83C\uDF31',
+  cls: 'tier-embarque',
+  desc: 'Primeiros 6 meses'
+}];
+function getNivel(faturamentoMensal) {
+  const f = faturamentoMensal || 0;
+  for (const n of NIVEIS) if (f >= n.min) return n;
+  return NIVEIS[NIVEIS.length - 1];
+}
+/* Proximo nivel e quanto falta de faturamento mensal para alcanca-lo */
+function proximoNivel(faturamentoMensal) {
+  const atual = getNivel(faturamentoMensal);
+  const i = NIVEIS.findIndex(n => n.id === atual.id);
+  if (i <= 0) return null; // ja esta no topo
+  const prox = NIVEIS[i - 1];
   return {
-    id: 'bronze',
-    label: 'Parceiro Iniciante',
-    color: '#A0522D',
-    glyph: '🌱',
-    cls: 'tier-bronze',
-    desc: 'Primeiros clientes'
+    nivel: prox,
+    falta: Math.max(prox.min - (faturamentoMensal || 0), 0)
   };
 }
 
@@ -397,9 +443,29 @@ function Timeline({
 const RD_FORM_ID = 'calculadora-simulacao-e99450ea44f139e159ab';
 const RD_FORM_TOKEN = 'UA-199540720-1';
 const N8N_WEBHOOK = 'https://automation.helena.run/webhook/calculadora-white-label';
+
+/* Baixa o script do formulário do RD UMA vez, em segundo plano, assim que a
+   página abre — antes do usuário clicar. Promise cacheada: várias chamadas,
+   um único download. É isso que faz o formulário abrir instantâneo. */
+const RD_SCRIPT_SRC = 'https://d335luupugsy2.cloudfront.net/js/rdstation-forms/stable/rdstation-forms.min.js';
+let _rdPromise = null;
+function preloadRdScript() {
+  if (_rdPromise) return _rdPromise;
+  _rdPromise = new Promise(resolve => {
+    if (window.RDStationForms) return resolve();
+    const el = document.createElement('script');
+    el.src = RD_SCRIPT_SRC;
+    el.async = true;
+    el.onload = () => resolve();
+    el.onerror = () => resolve(); // falhou: segue o fluxo, o form só não aparece
+    document.body.appendChild(el);
+  });
+  return _rdPromise;
+}
 function RdForm({
   simUrl
 }) {
+  const [pronto, setPronto] = useState(false);
   const injectRef = useRef(() => false);
   const dataRef = useRef({
     simUrl
@@ -458,26 +524,27 @@ function RdForm({
     return true;
   };
 
-  /* Cria o formulário uma única vez (carrega o script do RD se preciso) */
+  /* Cria o formulário uma única vez. O script do RD já vem pré-carregado
+     (ver preloadRdScript(), disparado assim que a página abre) — então aqui
+     normalmente a promise já está resolvida e o form aparece na hora. */
   useEffect(() => {
-    const render = () => {
+    let vivo = true;
+    preloadRdScript().then(() => {
+      if (!vivo) return;
       try {
         new window.RDStationForms(RD_FORM_ID, RD_FORM_TOKEN).createForm();
       } catch (e) {}
       let n = 0;
       const t = setInterval(() => {
         n++;
+        const box = document.getElementById(RD_FORM_ID);
+        if (box && box.querySelector('form')) setPronto(true);
         if (injectRef.current() || n > 50) clearInterval(t);
-      }, 400);
+      }, 200);
+    });
+    return () => {
+      vivo = false;
     };
-    if (window.RDStationForms) {
-      render();
-    } else {
-      const s = document.createElement('script');
-      s.src = 'https://d335luupugsy2.cloudfront.net/js/rdstation-forms/stable/rdstation-forms.min.js';
-      s.onload = render;
-      document.body.appendChild(s);
-    }
   }, []);
 
   /* Mantém o link sempre atualizado conforme a configuração muda */
@@ -485,9 +552,28 @@ function RdForm({
     injectRef.current();
   }, [simUrl]);
   return /*#__PURE__*/React.createElement("div", {
+    className: "relative"
+  }, !pronto && /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 z-10 space-y-3 pointer-events-none",
+    "aria-hidden": "true"
+  }, [0, 1, 2, 3].map(i => /*#__PURE__*/React.createElement("div", {
+    key: i
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "skel h-2.5 w-20 rounded mb-1.5"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "skel h-9 w-full rounded-md"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "skel h-10 w-full rounded-md"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-slate-400 text-center pt-0.5"
+  }, "Carregando formulário…")), /*#__PURE__*/React.createElement("div", {
     role: "main",
-    id: RD_FORM_ID
-  });
+    id: RD_FORM_ID,
+    style: {
+      opacity: pronto ? 1 : 0,
+      transition: 'opacity .25s ease'
+    }
+  }));
 }
 
 /* ════════════════════════════════════════
@@ -511,7 +597,15 @@ function Calculadora() {
   const [extraUsers, setExtraUsers] = useState(2);
   const [vendeCanais, setVendeCanais] = useState(false);
   const [extraCanais, setExtraCanais] = useState(1);
+  const [vendeLig, setVendeLig] = useState(false);
+  const [ligCanais, setLigCanais] = useState(1);
+  const [ligUsers, setLigUsers] = useState(3);
+  const [ligGrav, setLigGrav] = useState(false);
   const [step, setStep] = useState(0);
+  /* Pré-carrega o formulário do RD assim que a página abre (não espera o clique) */
+  useEffect(() => {
+    preloadRdScript();
+  }, []);
   const [form, setForm] = useState({
     nome: '',
     empresa: '',
@@ -523,15 +617,23 @@ function Calculadora() {
   const taxaSetup = TAXA_SETUP[plano];
   const parcelaSetup = taxaSetup / Math.max(parcelas, 1);
   const custoAppMensal = plano === 'pro' ? querDominio ? CUSTO_DOMINIO_PRO : 0 : CUSTO_APP_PREMIUM;
+
+  /* Licenca por conta ativa: 149,90 (base) ou 199,90 (base + IA ilimitado).
+     Ja inclui 3 usuarios + 1 canal — os extras abaixo sao ACIMA desses inclusos. */
+  const iaIlimitada = licenca === 'ia';
+  const custoLic = custoLicenca(licenca);
   const custoExtraUsers = vendeUsers ? custoUsuariosExtras(extraUsers) : 0;
   const custoExtraCanais = vendeCanais ? custoCanaisExtras(extraCanais) : 0;
-  const custoExtraIA = vendeIA ? qtdIA * CUSTO_IA_AGENTE : 0;
-  const custoPorCli = custoExtraUsers + custoExtraCanais + custoExtraIA;
+  /* Na licenca ilimitada os agentes ja estao inclusos — nao cobra o avulso */
+  const custoExtraIA = vendeIA && !iaIlimitada ? qtdIA * CUSTO_IA_AGENTE : 0;
+  const custoExtraLig = vendeLig ? custoLigacao(ligCanais, ligUsers, ligGrav) : 0;
+  const custoPorCli = custoLic + custoExtraUsers + custoExtraCanais + custoExtraIA + custoExtraLig;
 
   // ── CONSUMAÇÃO ──────────────────────────────────────────────────────────
-  // A plataforma (R$ 659,90) é um MÍNIMO mensal que já inclui um tanto de uso.
-  // Os adicionais (usuários/canais/IA) da operação INTEIRA são absorvidos
-  // DENTRO dos 659,90; só o que ultrapassar é cobrado a mais.
+  // A plataforma (R$ 659,80) é um MÍNIMO mensal (consumação) da operação.
+  // A licença de cada conta (149,90 / 199,90) + os adicionais da operação INTEIRA
+  // são absorvidos DENTRO dos 659,80; só o que ultrapassar é cobrado a mais.
+  // Na prática o piso só vale até 4 contas (4 x 149,90 = 599,60).
   // Domínio próprio, App Premium e a parcela do setup somam à parte (não entram).
   const licenciamento = nCli => Math.max(CUSTO_PLATAFORMA, custoPorCli * Math.max(nCli, 0));
   const custoFixoBase = nCli => licenciamento(nCli) + custoAppMensal; // sem parcela
@@ -588,7 +690,14 @@ function Calculadora() {
   const paybackMes = parcelas <= 12 ? parcelas : null;
   const investimento12m = projecao.reduce((s, d) => s + d.custo, 0);
   const roi = investimento12m > 0 ? ganhoLiquido12 / investimento12m * 100 : 0;
-  const tier = getTier(ganhoLiquido12);
+  /* NIVEL DE PARCEIRO — pelo FATURAMENTO MENSAL do parceiro (receita total).
+     Mostramos o de hoje e o alcancado no mes 12 da projecao. */
+  const fatHoje = recTotal;
+  const fatM12 = projecao[11].mrr + projecao[11].sup + projecao[11].impl;
+  const nivelHoje = getNivel(fatHoje);
+  const nivel12 = getNivel(fatM12);
+  const proxDeHoje = proximoNivel(fatHoje);
+  const tier = nivel12; // o "perfil" divulgado é o potencial em 12 meses
   const perdidoMes = Math.max(margemMensal, 0);
   const custoDurante = projecao.slice(0, Math.min(parcelas, 12)).reduce((s, d) => s + d.custo, 0) / Math.min(parcelas, 12);
   const margemLivrePos = parcelas < 12 ? projecao.slice(parcelas).reduce((s, d) => s + d.margem, 0) / (12 - parcelas) : 0;
@@ -668,6 +777,12 @@ function Calculadora() {
       qtd_usuarios: vendeUsers ? extraUsers : 0,
       vende_canais: vendeCanais,
       qtd_canais: vendeCanais ? extraCanais : 0,
+      vende_ligacao: vendeLig,
+      qtd_canais_ligacao: vendeLig ? ligCanais : 0,
+      qtd_usuarios_ligacao: vendeLig ? ligUsers : 0,
+      gravacao_ligacao: vendeLig ? ligGrav : false,
+      custo_licenca_conta: custoLic,
+      custo_por_conta: Math.round(custoPorCli * 100) / 100,
       cobra_implantacao: cobraImpl,
       valor_implantacao: cobraImpl ? valorImpl : 0,
       cobra_suporte: cobraSup,
@@ -680,6 +795,10 @@ function Calculadora() {
       retorno_pct: Math.round(roi),
       perfil_tier: tier.label,
       perfil_tier_id: tier.id,
+      nivel_hoje: nivelHoje.label,
+      nivel_hoje_id: nivelHoje.id,
+      faturamento_mensal_hoje: Math.round(fatHoje),
+      faturamento_mensal_m12: Math.round(fatM12),
       clientes_mes12: cli12,
       custo_medio_mensal: Math.round(custoDurante),
       /* Projeção mensal completa — n8n usa para gerar o PDF */
@@ -724,6 +843,10 @@ function Calculadora() {
       cobra_implantacao: cobraImpl,
       vende_usuarios: vendeUsers,
       vende_canais: vendeCanais,
+      vende_ligacao: vendeLig,
+      nivel_hoje: nivelHoje.label,
+      faturamento_mensal_hoje: Math.round(fatHoje),
+      faturamento_mensal_m12: Math.round(fatM12),
       lucro_liquido_12m: Math.round(ganhoLiquido12),
       lucro_mes1: Math.round(marg1),
       lucro_mes12: Math.round(marg12),
@@ -870,7 +993,7 @@ function Calculadora() {
     style: {
       color: `${ticketCol}BB`
     }
-  }, abaixoMinimo ? `↑ falta ${brl(ticketMinimo - ticketCRM)} p/ cobrir custos` : `✓ ${brl(lucroPorCli)} acima do mínimo`)), /*#__PURE__*/React.createElement("div", {
+  }, abaixoMinimo ? `↑ falta ${brl(ticketMinimo - recPorCli)} p/ cobrir custos` : `✓ ${brl(lucroPorCli)} acima do mínimo`)), /*#__PURE__*/React.createElement("div", {
     className: "self-center text-slate-700 text-xl"
   }, "→"), /*#__PURE__*/React.createElement("div", {
     className: "flex-1 rounded-xl border px-4 py-3 text-center transition-all",
@@ -881,7 +1004,7 @@ function Calculadora() {
   }, /*#__PURE__*/React.createElement(Tip, {
     pos: "left",
     title: "Lucro no 1º mês",
-    text: `Margem do primeiro mês: ${projecao[0].cli} clientes (${brl(projecao[0].mrr)}) menos custos (${brl(projecao[0].custo)}).`
+    text: `Margem do primeiro mês: ${projecao[0].cli} clientes · mensalidades ${brl(projecao[0].mrr)}` + (projecao[0].sup ? ` + suporte ${brl(projecao[0].sup)}` : '') + (projecao[0].impl ? ` + implantação ${brl(projecao[0].impl)}` : '') + ` − custos ${brl(projecao[0].custo)}.`
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] text-slate-500 mb-0.5"
   }, "Lucro no 1º mês")), /*#__PURE__*/React.createElement("div", {
@@ -916,7 +1039,7 @@ function Calculadora() {
       color: ticketCol
     },
     className: "font-700"
-  }, brl(lucroPorCli), "/cli · ", brl(lucroMensal), "/mês"))), /*#__PURE__*/React.createElement("div", {
+  }, brl(lucroPorCli), "/cli · ", brl(lucroMensal), "/mês recorrente"))), /*#__PURE__*/React.createElement("div", {
     className: "border-t border-brand-border/40 pt-4 space-y-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-xs text-slate-500 font-500"
@@ -940,7 +1063,7 @@ function Calculadora() {
       onChange: setExtraUsers,
       fmtL: v => `${v}`,
       fmtR: v => `${v}`,
-      fmtV: v => `${v} usuário${v > 1 ? 's' : ''} extra${v > 1 ? 's' : ''}`,
+      fmtV: v => `${v} extra${v > 1 ? 's' : ''} · ${v + 3} usuários no total`,
       accent: "#818CF8"
     }), /*#__PURE__*/React.createElement("div", {
       className: "rounded-lg px-2.5 py-1.5 text-[10px] border",
@@ -949,7 +1072,7 @@ function Calculadora() {
         borderColor: 'rgba(129,140,248,.15)',
         color: 'rgba(129,140,248,.7)'
       }
-    }, extraUsers <= 17 && /*#__PURE__*/React.createElement(React.Fragment, null, "💡 Faixa atual: ", /*#__PURE__*/React.createElement("b", null, "R$ 19,90/usuário")), extraUsers > 17 && extraUsers <= 97 && /*#__PURE__*/React.createElement(React.Fragment, null, "💡 Faixa atual: ", /*#__PURE__*/React.createElement("b", null, "R$ 14,90/usuário")), extraUsers > 97 && /*#__PURE__*/React.createElement(React.Fragment, null, "💡 Faixa atual: ", /*#__PURE__*/React.createElement("b", null, "R$ 12,90/usuário"), " · Melhor preço!")))
+    }, extraUsers <= 17 && /*#__PURE__*/React.createElement(React.Fragment, null, "💡 ", /*#__PURE__*/React.createElement("b", null, "R$ 19,90/usuário"), " (4º ao 20º) · cai p/ R$ 14,90 a partir do 21º"), extraUsers > 17 && extraUsers <= 97 && /*#__PURE__*/React.createElement(React.Fragment, null, "💡 ", /*#__PURE__*/React.createElement("b", null, "R$ 14,90/usuário"), " (21º ao 100º) · cai p/ R$ 12,90 a partir do 101º"), extraUsers > 97 && /*#__PURE__*/React.createElement(React.Fragment, null, "💡 ", /*#__PURE__*/React.createElement("b", null, "R$ 12,90/usuário"), " (acima do 100º) · Melhor preço!")))
   }, {
     key: 'canais',
     icon: '📡',
@@ -970,7 +1093,7 @@ function Calculadora() {
       onChange: setExtraCanais,
       fmtL: v => `${v}`,
       fmtR: v => `${v}`,
-      fmtV: v => `${v} ${v > 1 ? 'canais' : 'canal'} extra${v > 1 ? 's' : ''}`,
+      fmtV: v => `${v} extra${v > 1 ? 's' : ''} · ${v + 1} ${v + 1 > 1 ? 'canais' : 'canal'} no total`,
       accent: "#FBBF24"
     }), /*#__PURE__*/React.createElement("div", {
       className: "rounded-lg px-2.5 py-1.5 text-[10px] border",
@@ -1007,7 +1130,71 @@ function Calculadora() {
       style: {
         background: 'rgba(0,209,94,.05)'
       }
-    }, "💡 Custo Helena: ", /*#__PURE__*/React.createElement("b", null, "R$ 50/agente/cliente/mês")))
+    }, iaIlimitada ? /*#__PURE__*/React.createElement(React.Fragment, null, "✓ Já incluso na ", /*#__PURE__*/React.createElement("b", null, "Licença Base + IA Ilimitado"), " — sem custo adicional") : /*#__PURE__*/React.createElement(React.Fragment, null, "💡 Custo Helena: ", /*#__PURE__*/React.createElement("b", null, "R$ 50/agente/cliente/mês"), qtdIA >= 2 && /*#__PURE__*/React.createElement(React.Fragment, null, " · a partir de 2 agentes a licença ", /*#__PURE__*/React.createElement("b", null, "IA Ilimitado"), " (R$ 199,90) sai mais barata"))))
+  }, {
+    key: 'ligacao',
+    icon: '\uD83D\uDCDE',
+    label: 'Ligação (Voz)',
+    sub: 'Telefonia por canal e por usuário',
+    checked: vendeLig,
+    toggle: () => setVendeLig(v => !v),
+    onChange: setVendeLig,
+    extra: vendeLig && /*#__PURE__*/React.createElement("div", {
+      className: "mt-3 pt-3 border-t border-brand-border/40 fu space-y-3"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] text-slate-500 mb-1"
+    }, "Quantos canais de ligação por cliente"), /*#__PURE__*/React.createElement(Slider, {
+      min: 1,
+      max: 20,
+      step: 1,
+      value: ligCanais,
+      onChange: setLigCanais,
+      fmtL: v => `${v}`,
+      fmtR: v => `${v}`,
+      fmtV: v => `${v} ${v > 1 ? 'canais' : 'canal'} de ligação`,
+      accent: "#38BDF8"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] text-slate-500 mb-1 pt-1"
+    }, "Quantos usuários com ligação por cliente"), /*#__PURE__*/React.createElement(Slider, {
+      min: 1,
+      max: 100,
+      step: 1,
+      value: ligUsers,
+      onChange: setLigUsers,
+      fmtL: v => `${v}`,
+      fmtR: v => `${v}`,
+      fmtV: v => `${v} usuário${v > 1 ? 's' : ''} com ligação`,
+      accent: "#38BDF8"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "pt-1"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] text-slate-500 mb-1.5"
+    }, "Gravação de chamadas"), /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-2 gap-2"
+    }, [{
+      v: false,
+      l: 'Sem gravação',
+      p: 'R$ 3,49'
+    }, {
+      v: true,
+      l: 'Com gravação',
+      p: 'R$ 4,99'
+    }].map(o => /*#__PURE__*/React.createElement("button", {
+      key: o.l,
+      onClick: () => setLigGrav(o.v),
+      className: `rounded-lg px-2 py-1.5 text-[10px] border transition-all ${ligGrav === o.v ? 'border-sky-400/40 bg-sky-500/10 text-sky-300' : 'border-brand-border/40 bg-brand-card/20 text-slate-500 hover:border-sky-700/30'}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "font-700"
+    }, o.l), /*#__PURE__*/React.createElement("div", {
+      className: "text-[9px] opacity-70"
+    }, o.p, "/usuário"))))), /*#__PURE__*/React.createElement("div", {
+      className: "rounded-lg px-2.5 py-1.5 text-[10px] border",
+      style: {
+        background: 'rgba(56,189,248,.05)',
+        borderColor: 'rgba(56,189,248,.15)',
+        color: 'rgba(56,189,248,.75)'
+      }
+    }, "💡 Custo Helena: ", /*#__PURE__*/React.createElement("b", null, "R$ 49,90/canal"), " + ", /*#__PURE__*/React.createElement("b", null, ligGrav ? 'R$ 4,99' : 'R$ 3,49', "/usuário"), " · total ", /*#__PURE__*/React.createElement("b", null, brl(custoExtraLig, 2)), "/cliente/mês"))
   }].map(s => /*#__PURE__*/React.createElement("div", {
     key: s.key,
     className: `stream ${s.checked ? 'on' : ''}`
@@ -1218,37 +1405,87 @@ function Calculadora() {
   }, "✓"), f))))))), /*#__PURE__*/React.createElement("div", {
     className: "flex flex-col gap-4 lg:sticky lg:top-16"
   }, /*#__PURE__*/React.createElement("div", {
-    className: `rounded-2xl border p-4 flex items-center gap-3 ${tier.cls}`,
+    className: `rounded-2xl border p-4 ${nivel12.cls}`,
     style: {
-      borderColor: tier.color + '55'
+      borderColor: nivel12.color + '55'
     }
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-3xl"
-  }, tier.glyph), /*#__PURE__*/React.createElement("div", {
-    className: "flex-1"
   }, /*#__PURE__*/React.createElement(Tip, {
     pos: "bottom",
     title: "Como é calculado seu nível",
-    text: `Baseado no lucro de 12 meses (${brl(ganhoLiquido12)}). Iniciante: até R$30k · Prata: R$30k–R$80k · Ouro: R$80k–R$200k · Elite: acima de R$200k.`
+    text: `Pelo seu faturamento mensal (mensalidades${cobraSup ? ' + suporte' : ''}${cobraImpl ? ' + implantação' : ''}). Embarque: sem faturamento · Parceiro: até R$ 10 mil · Silver: R$ 10 mil a R$ 25 mil · Gold: R$ 25 mil a R$ 50 mil · Platinum: R$ 50 mil a R$ 100 mil · Diamond: acima de R$ 100 mil.`
   }, /*#__PURE__*/React.createElement("div", {
-    className: "text-xs font-700 uppercase tracking-widest mb-0.5",
-    style: {
-      color: tier.color
-    }
-  }, tier.label)), /*#__PURE__*/React.createElement("div", {
-    className: "text-[11px] text-slate-400"
-  }, tier.desc)), /*#__PURE__*/React.createElement("div", {
-    className: "text-right"
+    className: "text-[10px] font-700 uppercase tracking-widest text-slate-500 mb-2.5"
+  }, "Nível de parceiro")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "text-[10px] text-slate-500"
-  }, "Lucro"), /*#__PURE__*/React.createElement("div", {
-    className: "text-sm font-800",
+    className: "flex-1 min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[9px] uppercase tracking-wider text-slate-600 mb-0.5"
+  }, "Hoje"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xl leading-none"
+  }, nivelHoje.glyph), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-800 uppercase tracking-wide truncate",
     style: {
-      color: tier.color
+      color: nivelHoje.color
     }
-  }, brl(ganhoLiquido12), /*#__PURE__*/React.createElement("span", {
-    className: "text-[10px] font-400"
-  }, "/12m")))), /*#__PURE__*/React.createElement("div", {
+  }, nivelHoje.label)), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-slate-500 mt-0.5"
+  }, brl(fatHoje), "/mês · ", clientes, " ", clientes === 1 ? 'conta' : 'contas')), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-600 text-sm shrink-0"
+  }, "→"), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 min-w-0 text-right"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[9px] uppercase tracking-wider text-slate-600 mb-0.5"
+  }, "Em 12 meses"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 justify-end"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-800 uppercase tracking-wide truncate",
+    style: {
+      color: nivel12.color
+    }
+  }, nivel12.label), /*#__PURE__*/React.createElement("span", {
+    className: "text-xl leading-none"
+  }, nivel12.glyph)), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-slate-500 mt-0.5"
+  }, brl(fatM12), "/mês · ", cli12, " contas"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-0.5 mt-3"
+  }, NIVEIS.slice().reverse().map((n, i) => {
+    const atingidoHoje = fatHoje >= n.min;
+    const atingido12 = fatM12 >= n.min;
+    return /*#__PURE__*/React.createElement("div", {
+      key: n.id,
+      className: "flex-1 group relative"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "h-1.5 rounded-sm transition-all",
+      style: {
+        background: atingidoHoje ? n.color : atingido12 ? n.color + '45' : 'rgba(148,163,184,.12)'
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "text-[8px] text-center mt-1 truncate",
+      style: {
+        color: atingidoHoje ? n.color : atingido12 ? n.color + '90' : '#475569'
+      }
+    }, n.label));
+  })), proxDeHoje && /*#__PURE__*/React.createElement("div", {
+    className: "mt-2.5 text-[10px] text-slate-500 text-center"
+  }, "Faltam ", /*#__PURE__*/React.createElement("span", {
+    className: "font-800",
+    style: {
+      color: proxDeHoje.nivel.color
+    }
+  }, brl(proxDeHoje.falta), "/mês"), " para chegar em ", /*#__PURE__*/React.createElement("span", {
+    className: "font-700",
+    style: {
+      color: proxDeHoje.nivel.color
+    }
+  }, proxDeHoje.nivel.label)), !proxDeHoje && /*#__PURE__*/React.createElement("div", {
+    className: "mt-2.5 text-[10px] text-center font-700",
+    style: {
+      color: nivelHoje.color
+    }
+  }, nivelHoje.glyph, " Nível máximo do programa alcançado")), /*#__PURE__*/React.createElement("div", {
     className: "card p-6 text-center relative"
   }, /*#__PURE__*/React.createElement("div", {
     className: "absolute inset-0 pointer-events-none rounded-[20px]",
@@ -1280,7 +1517,7 @@ function Calculadora() {
     className: "flex items-center gap-1.5 text-[10px] text-slate-500"
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-2.5 h-2.5 rounded-sm bg-g-400"
-  }), "CRM", vendeIA ? ' + IA' : '', vendeUsers ? ' + Users' : '', vendeCanais ? ' + Canais' : ''), cobraImpl && /*#__PURE__*/React.createElement("div", {
+  }), "CRM", vendeIA ? ' + IA' : '', vendeUsers ? ' + Users' : '', vendeCanais ? ' + Canais' : '', vendeLig ? ' + Ligação' : ''), cobraImpl && /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1.5 text-[10px] text-slate-500"
   }, /*#__PURE__*/React.createElement("span", {
     className: "w-2.5 h-2.5 rounded-sm",
@@ -1365,7 +1602,7 @@ function Calculadora() {
     className: "text-sm font-900 text-slate-100"
   }, brl(recTotal)), /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] text-slate-600 mt-0.5"
-  }, clientes, " clientes")), /*#__PURE__*/React.createElement("div", {
+  }, brl(mrrBase + mrrSup), " recorrente · ", clientes, " clientes", recImpl > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("br", null), "+", brl(recImpl), " implantação (", novos, " novos)"))), /*#__PURE__*/React.createElement("div", {
     className: "card p-3 text-center"
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] text-slate-500 mb-1"
@@ -1383,9 +1620,13 @@ function Calculadora() {
     className: "text-[10px] text-slate-600 mt-0.5"
   }, "sobre o investido"))), /*#__PURE__*/React.createElement("div", {
     className: "card p-4"
+  }, /*#__PURE__*/React.createElement(Tip, {
+    pos: "top",
+    title: "Lucro recorrente por cliente",
+    text: `Mensalidade${cobraSup ? ' + suporte' : ''} menos o ticket mínimo (${brl(ticketMinimo)}), que é o custo da operação dividido pelos ${clientes || 1} clientes. Não inclui a implantação, que é cobrança única e aparece ao lado.`
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-700 text-slate-400"
-  }, "Por cliente novo contratado"), /*#__PURE__*/React.createElement("div", {
+  }, "Por cliente novo contratado")), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mt-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex-1 text-center rounded-xl border py-2.5",
@@ -1444,7 +1685,7 @@ function Calculadora() {
     }
   }, "Quero este resultado →"), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mt-4"
-  }, [`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes ? `⚡ Recupera no mês ${paybackMes}` : ''].filter(Boolean).map(t => /*#__PURE__*/React.createElement("div", {
+  }, [`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes ? `⚡ Parcelas quitadas no mês ${paybackMes}` : ''].filter(Boolean).map(t => /*#__PURE__*/React.createElement("div", {
     key: t,
     className: "flex-1 text-center text-[10px] text-slate-600 leading-tight"
   }, t)))), step === 1 && /*#__PURE__*/React.createElement("div", {
@@ -1466,17 +1707,28 @@ function Calculadora() {
     className: "text-slate-300"
   }, plano === 'pro' ? 'Pro' : 'Premium'), " · ", clientes, " clientes · +", novos, "/mês"), /*#__PURE__*/React.createElement("div", null, "Lucro 12m: ", /*#__PURE__*/React.createElement("strong", {
     className: "text-g-400"
-  }, brl(ganhoLiquido12)), paybackMes && /*#__PURE__*/React.createElement("span", null, " · Recupera no mês ", /*#__PURE__*/React.createElement("strong", {
+  }, brl(ganhoLiquido12)), paybackMes && /*#__PURE__*/React.createElement("span", null, " · Parcelas quitadas no mês ", /*#__PURE__*/React.createElement("strong", {
     className: "text-amber-400"
   }, paybackMes)))), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl overflow-hidden",
     style: {
-      background: '#fff',
-      borderRadius: '14px',
-      padding: '16px'
+      border: '1px solid rgba(0,209,94,.22)',
+      boxShadow: '0 0 0 1px rgba(0,209,94,.06), 0 12px 40px rgba(0,0,0,.45)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "px-3.5 py-2 text-[11px] font-700 text-g-400 flex items-center gap-1.5",
+    style: {
+      background: 'rgba(0,209,94,.07)',
+      borderBottom: '1px solid rgba(0,209,94,.16)'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "✉️"), "Seus dados"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#F8FAFC',
+      padding: '18px'
     }
   }, /*#__PURE__*/React.createElement(RdForm, {
     simUrl: simUrl
-  })), /*#__PURE__*/React.createElement("p", {
+  }))), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-slate-600 text-center mt-3"
   }, "Sem spam · Você recebe a simulação no seu e-mail")), step === 2 && /*#__PURE__*/React.createElement("div", {
     className: "card p-6 text-center fu",
@@ -1496,7 +1748,7 @@ function Calculadora() {
     val: brl(ganhoLiquido12),
     color: 'text-g-400'
   }, {
-    label: 'Recupera em',
+    label: 'Parcelas quitadas',
     val: paybackMes ? `Mês ${paybackMes}` : '—',
     color: 'text-amber-400'
   }, {

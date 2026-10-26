@@ -43,10 +43,15 @@
     .pulse2{animation:pulse2 2.5s ease-in-out infinite}
 
     /* ── Tier badge ─────────────────────── */
-    .tier-bronze{background:linear-gradient(135deg,#3D2B1F,#6B4226);border-color:#A0522D}
+    .tier-embarque{background:linear-gradient(135deg,#171E26,#232C38);border-color:#64748B}
+    .tier-parceiro{background:linear-gradient(135deg,#071C12,#0C2E1C);border-color:#00D15E}
     .tier-silver{background:linear-gradient(135deg,#1E2530,#2E3D50);border-color:#64748B}
     .tier-gold{background:linear-gradient(135deg,#2D2000,#4A3800);border-color:#CA8A04}
-    .tier-platinum{background:linear-gradient(135deg,#0A2A1A,#0D3D25);border-color:#00D15E}
+    .tier-platinum{background:linear-gradient(135deg,#06242C,#0A3A46);border-color:#22D3EE}
+    .tier-diamond{background:linear-gradient(135deg,#1A1033,#2A1B4D);border-color:#A78BFA}
+    /* esqueleto de carregamento do formulario do RD */
+    .skel{background:linear-gradient(90deg,#E2E8F0 25%,#F1F5F9 50%,#E2E8F0 75%);background-size:200% 100%;animation:skelshine 1.2s linear infinite}
+    @keyframes skelshine{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
     /* ── Milestone marker ───────────────── */
     .milestone{position:absolute;bottom:100%;transform:translateX(-50%);white-space:nowrap}
