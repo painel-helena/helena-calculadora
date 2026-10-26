@@ -635,9 +635,11 @@ function Calculadora() {
   // são absorvidos DENTRO dos 659,80; só o que ultrapassar é cobrado a mais.
   // Na prática o piso só vale até 4 contas (4 x 149,90 = 599,60).
   // Domínio próprio, App Premium e a parcela do setup somam à parte (não entram).
-  // SEM NENHUMA CONTA ATIVA não há consumação: o piso é de uma operação em curso.
-  // Com 0 contas o parceiro só paga a parcela do setup (e o app/domínio, se contratou).
-  const licenciamento = nCli => nCli <= 0 ? 0 : Math.max(CUSTO_PLATAFORMA, custoPorCli * nCli);
+  // O licenciamento mensal (R$ 659,80) é um compromisso FIXO: o parceiro paga
+  // mesmo sem nenhuma conta ativa. Com 0 contas ele paga o licenciamento + a
+  // parcela do plano (se parcelou). A partir da 5ª conta o valor por conta ultrapassa
+  // o piso e passa a valer o cálculo cheio.
+  const licenciamento = nCli => Math.max(CUSTO_PLATAFORMA, custoPorCli * Math.max(nCli, 0));
   const custoFixoBase = nCli => licenciamento(nCli) + custoAppMensal; // sem parcela
   const custoRecorr = nCli => custoFixoBase(nCli) + parcelaSetup; // com parcela
   const custoFixo = custoFixoBase(clientes);
@@ -671,7 +673,7 @@ function Calculadora() {
       const mrr = ticketCRM * cli;
       const sup = cobraSup ? ticketSup * cli : 0;
       const impl = cobraImpl ? valorImpl * novos : 0;
-      const lic = cli <= 0 ? 0 : Math.max(CUSTO_PLATAFORMA, custoPorCli * cli); // consumação do mês (0 contas = sem piso)
+      const lic = Math.max(CUSTO_PLATAFORMA, custoPorCli * cli); // licenciamento do mês (piso fixo)
       const custoMes = lic + custoAppMensal + (i + 1 <= parcelas ? parcelaSetup : 0);
       const margem = mrr + sup + impl - custoMes;
       return {
