@@ -635,7 +635,9 @@ function Calculadora() {
   // são absorvidos DENTRO dos 659,80; só o que ultrapassar é cobrado a mais.
   // Na prática o piso só vale até 4 contas (4 x 149,90 = 599,60).
   // Domínio próprio, App Premium e a parcela do setup somam à parte (não entram).
-  const licenciamento = nCli => Math.max(CUSTO_PLATAFORMA, custoPorCli * Math.max(nCli, 0));
+  // SEM NENHUMA CONTA ATIVA não há consumação: o piso é de uma operação em curso.
+  // Com 0 contas o parceiro só paga a parcela do setup (e o app/domínio, se contratou).
+  const licenciamento = nCli => nCli <= 0 ? 0 : Math.max(CUSTO_PLATAFORMA, custoPorCli * nCli);
   const custoFixoBase = nCli => licenciamento(nCli) + custoAppMensal; // sem parcela
   const custoRecorr = nCli => custoFixoBase(nCli) + parcelaSetup; // com parcela
   const custoFixo = custoFixoBase(clientes);
@@ -655,10 +657,10 @@ function Calculadora() {
   const recTotal = mrrBase + mrrSup + recImpl;
   const margemMensal = recTotal - custoMensal;
   const margemPct = recTotal > 0 ? margemMensal / recTotal * 100 : 0;
-  const ticketMinimo = Math.ceil(custoRecorr(clientes) / Math.max(clientes, 1) / 10) * 10;
+  const ticketMinimo = clientes > 0 ? Math.ceil(custoRecorr(clientes) / clientes / 10) * 10 : 0;
   const lucroPorCli = recPorCli - ticketMinimo;
   const lucroMensal = lucroPorCli * clientes;
-  const abaixoMinimo = lucroPorCli < 0;
+  const abaixoMinimo = clientes > 0 && lucroPorCli < 0;
   const ticketCol = abaixoMinimo ? '#EF4444' : lucroPorCli >= 200 ? '#00D15E' : lucroPorCli >= 100 ? '#D8F558' : '#F59E0B';
   const ticketLbl = abaixoMinimo ? 'Abaixo do mínimo' : lucroPorCli >= 200 ? 'Excelente' : lucroPorCli >= 100 ? 'Ótima' : 'Boa';
   const projecao = useMemo(() => {
@@ -669,7 +671,7 @@ function Calculadora() {
       const mrr = ticketCRM * cli;
       const sup = cobraSup ? ticketSup * cli : 0;
       const impl = cobraImpl ? valorImpl * novos : 0;
-      const lic = Math.max(CUSTO_PLATAFORMA, custoPorCli * cli); // consumação do mês
+      const lic = cli <= 0 ? 0 : Math.max(CUSTO_PLATAFORMA, custoPorCli * cli); // consumação do mês (0 contas = sem piso)
       const custoMes = lic + custoAppMensal + (i + 1 <= parcelas ? parcelaSetup : 0);
       const margem = mrr + sup + impl - custoMes;
       return {
@@ -692,8 +694,10 @@ function Calculadora() {
   const roi = investimento12m > 0 ? ganhoLiquido12 / investimento12m * 100 : 0;
   /* NIVEL DE PARCEIRO — pelo FATURAMENTO MENSAL do parceiro (receita total).
      Mostramos o de hoje e o alcancado no mes 12 da projecao. */
-  const fatHoje = recTotal;
-  const fatM12 = projecao[11].mrr + projecao[11].sup + projecao[11].impl;
+  /* Só o RECORRENTE conta para o nível — a implantação é cobrança única e
+     inflaria o nível de quem ainda não tem base. */
+  const fatHoje = mrrBase + mrrSup;
+  const fatM12 = projecao[11].mrr + projecao[11].sup;
   const nivelHoje = getNivel(fatHoje);
   const nivel12 = getNivel(fatM12);
   const proxDeHoje = proximoNivel(fatHoje);
@@ -993,7 +997,7 @@ function Calculadora() {
     style: {
       color: `${ticketCol}BB`
     }
-  }, abaixoMinimo ? `↑ falta ${brl(ticketMinimo - recPorCli)} p/ cobrir custos` : `✓ ${brl(lucroPorCli)} acima do mínimo`)), /*#__PURE__*/React.createElement("div", {
+  }, clientes === 0 ? 'Adicione clientes para ver o mínimo' : abaixoMinimo ? `↑ falta ${brl(ticketMinimo - recPorCli)} p/ cobrir custos` : `✓ ${brl(lucroPorCli)} acima do mínimo`)), /*#__PURE__*/React.createElement("div", {
     className: "self-center text-slate-700 text-xl"
   }, "→"), /*#__PURE__*/React.createElement("div", {
     className: "flex-1 rounded-xl border px-4 py-3 text-center transition-all",
@@ -1034,7 +1038,7 @@ function Calculadora() {
     className: "text-slate-700"
   }, "mín. recomendado: ", /*#__PURE__*/React.createElement("span", {
     className: "font-700 text-slate-500"
-  }, brl(ticketMinimo))), !abaixoMinimo && clientes > 0 && /*#__PURE__*/React.createElement("span", {
+  }, clientes > 0 ? brl(ticketMinimo) : '—')), !abaixoMinimo && clientes > 0 && /*#__PURE__*/React.createElement("span", {
     style: {
       color: ticketCol
     },
@@ -1623,7 +1627,7 @@ function Calculadora() {
   }, /*#__PURE__*/React.createElement(Tip, {
     pos: "top",
     title: "Lucro recorrente por cliente",
-    text: `Mensalidade${cobraSup ? ' + suporte' : ''} menos o ticket mínimo (${brl(ticketMinimo)}), que é o custo da operação dividido pelos ${clientes || 1} clientes. Não inclui a implantação, que é cobrança única e aparece ao lado.`
+    text: clientes > 0 ? `Mensalidade${cobraSup ? ' + suporte' : ''} menos o ticket mínimo (${brl(ticketMinimo)}), que é o custo da operação dividido pelos ${clientes} clientes. Não inclui a implantação, que é cobrança única e aparece ao lado.` : 'Adicione clientes atuais para calcular o lucro por cliente.'
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-700 text-slate-400"
   }, "Por cliente novo contratado")), /*#__PURE__*/React.createElement("div", {
