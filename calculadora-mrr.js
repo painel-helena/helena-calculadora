@@ -551,10 +551,11 @@ function RdForm({
   useEffect(() => {
     injectRef.current();
   }, [simUrl]);
-  return /*#__PURE__*/React.createElement("div", {
-    className: "relative"
-  }, !pronto && /*#__PURE__*/React.createElement("div", {
-    className: "absolute inset-0 z-10 space-y-3 pointer-events-none",
+
+  /* O esqueleto fica no FLUXO (nao absoluto): antes do form chegar o container
+     do RD tem altura zero, e um esqueleto absoluto vazaria por cima da pagina. */
+  return /*#__PURE__*/React.createElement("div", null, !pronto && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3",
     "aria-hidden": "true"
   }, [0, 1, 2, 3].map(i => /*#__PURE__*/React.createElement("div", {
     key: i
@@ -571,6 +572,8 @@ function RdForm({
     id: RD_FORM_ID,
     style: {
       opacity: pronto ? 1 : 0,
+      height: pronto ? 'auto' : 0,
+      overflow: 'hidden',
       transition: 'opacity .25s ease'
     }
   }));
@@ -606,6 +609,20 @@ function Calculadora() {
   useEffect(() => {
     preloadRdScript();
   }, []);
+
+  /* Janela do formulário: Esc fecha e a página atrás para de rolar */
+  useEffect(() => {
+    if (step !== 1) return;
+    const onKey = e => {
+      if (e.key === 'Escape') setStep(0);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.classList.add('modal-open');
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.classList.remove('modal-open');
+    };
+  }, [step]);
   const [form, setForm] = useState({
     nome: '',
     empresa: '',
@@ -1672,7 +1689,7 @@ function Calculadora() {
     className: `rounded-2xl border px-4 py-3.5 text-sm leading-relaxed font-500 ${toneCls[insight.tone]}`
   }, /*#__PURE__*/React.createElement("span", {
     className: "mr-1.5"
-  }, insight.icon), insight.text), step === 0 && /*#__PURE__*/React.createElement("div", {
+  }, insight.icon), insight.text), step < 2 && /*#__PURE__*/React.createElement("div", {
     className: "card p-5",
     id: "cta-form"
   }, /*#__PURE__*/React.createElement("div", {
@@ -1694,49 +1711,51 @@ function Calculadora() {
   }, [`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes ? `⚡ Parcelas quitadas no mês ${paybackMes}` : ''].filter(Boolean).map(t => /*#__PURE__*/React.createElement("div", {
     key: t,
     className: "flex-1 text-center text-[10px] text-slate-600 leading-tight"
-  }, t)))), step === 1 && /*#__PURE__*/React.createElement("div", {
-    className: "card p-5 fu",
-    id: "cta-form"
+  }, t)))), step === 1 && createPortal(/*#__PURE__*/React.createElement("div", {
+    className: "modal-ov",
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-label": "Receba sua simulação por e-mail",
+    onMouseDown: e => {
+      if (e.target === e.currentTarget) setStep(0);
+    }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "text-sm font-700 text-slate-200 mb-1"
+    className: "modal-cx"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "modal-x",
+    onClick: () => setStep(0),
+    "aria-label": "Fechar"
+  }, "✕"), /*#__PURE__*/React.createElement("div", {
+    className: "text-center mb-4 pr-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-lg font-800 text-slate-100 mb-1"
   }, "Receba sua simulação por e-mail"), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-slate-500 mb-3"
-  }, "Preencha seus dados e enviamos a sua simulação completa pro seu e-mail."), /*#__PURE__*/React.createElement("div", {
-    className: "rounded-xl px-3 py-2.5 text-[11px] text-slate-500 border mb-3",
+    className: "text-xs text-slate-500"
+  }, "Preencha seus dados e enviamos a simulação completa, com a projeção mês a mês.")), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-xl px-3.5 py-3 text-[11px] text-slate-500 border mb-4",
     style: {
       background: 'rgba(0,209,94,.04)',
-      borderColor: 'rgba(0,209,94,.1)'
+      borderColor: 'rgba(0,209,94,.12)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-g-400 font-700 mb-1"
-  }, tier.glyph, " ", tier.label), /*#__PURE__*/React.createElement("div", null, "Plano ", /*#__PURE__*/React.createElement("strong", {
+  }, tier.glyph, " ", tier.label, " em 12 meses"), /*#__PURE__*/React.createElement("div", null, "Plano ", /*#__PURE__*/React.createElement("strong", {
     className: "text-slate-300"
-  }, plano === 'pro' ? 'Pro' : 'Premium'), " · ", clientes, " clientes · +", novos, "/mês"), /*#__PURE__*/React.createElement("div", null, "Lucro 12m: ", /*#__PURE__*/React.createElement("strong", {
+  }, plano === 'pro' ? 'Pro' : 'Premium'), " · ", clientes, " ", clientes === 1 ? 'conta' : 'contas', " · +", novos, "/mês"), /*#__PURE__*/React.createElement("div", null, "Margem 12m: ", /*#__PURE__*/React.createElement("strong", {
     className: "text-g-400"
   }, brl(ganhoLiquido12)), paybackMes && /*#__PURE__*/React.createElement("span", null, " · Parcelas quitadas no mês ", /*#__PURE__*/React.createElement("strong", {
     className: "text-amber-400"
   }, paybackMes)))), /*#__PURE__*/React.createElement("div", {
-    className: "rounded-2xl overflow-hidden",
-    style: {
-      border: '1px solid rgba(0,209,94,.22)',
-      boxShadow: '0 0 0 1px rgba(0,209,94,.06), 0 12px 40px rgba(0,0,0,.45)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "px-3.5 py-2 text-[11px] font-700 text-g-400 flex items-center gap-1.5",
-    style: {
-      background: 'rgba(0,209,94,.07)',
-      borderBottom: '1px solid rgba(0,209,94,.16)'
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "✉️"), "Seus dados"), /*#__PURE__*/React.createElement("div", {
     style: {
       background: '#F8FAFC',
-      padding: '18px'
+      borderRadius: '14px',
+      padding: '20px'
     }
   }, /*#__PURE__*/React.createElement(RdForm, {
     simUrl: simUrl
-  }))), /*#__PURE__*/React.createElement("p", {
+  })), /*#__PURE__*/React.createElement("p", {
     className: "text-[11px] text-slate-600 text-center mt-3"
-  }, "Sem spam · Você recebe a simulação no seu e-mail")), step === 2 && /*#__PURE__*/React.createElement("div", {
+  }, "Sem spam · Você recebe a simulação no seu e-mail"))), document.body), step === 2 && /*#__PURE__*/React.createElement("div", {
     className: "card p-6 text-center fu",
     id: "cta-form"
   }, /*#__PURE__*/React.createElement("div", {
