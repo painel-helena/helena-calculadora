@@ -196,3 +196,15 @@
     /* telas baixas (celular deitado): a janela rola junto, nao corta */
     @media (max-height:640px){ .modal-ov{align-items:flex-start} .modal-cx{margin:0 auto} }
     @media (prefers-reduced-motion:reduce){ .modal-ov,.modal-cx{animation:none} }
+
+    /* ── Área de toque no celular (out/2026) ────────────────────────────
+       O dedo precisa de ~44px. O botão "i" tem 15px e o X da janela 30px.
+       Em vez de aumentar o desenho, expandimos só a área clicável com um
+       pseudo-elemento invisível. Restrito a aparelhos sem mouse, para não
+       criar zonas mortas que roubem cliques no desktop. */
+    @media (hover:none){
+      .tip-btn{position:relative}
+      .tip-btn::after{content:"";position:absolute;inset:-14px;border-radius:50%}
+      .modal-x{width:40px;height:40px;top:10px;right:10px;font-size:15px}
+      .sw{min-height:28px}
+    }
