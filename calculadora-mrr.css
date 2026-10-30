@@ -143,7 +143,17 @@
       font-weight:800 !important; height:46px !important;
       box-shadow:0 6px 22px rgba(0,209,94,.22) !important;
       cursor:pointer !important; transition:filter .15s ease !important;
-      width:100% !important; font-size:15px !important; line-height:1 !important;
+      width:100% !important; font-size:15px !important;
+      /* flexbox centraliza o texto de verdade: a altura fixa + o padding que o
+         RD aplica jogavam a palavra para cima do botao */
+      display:flex !important; align-items:center !important; justify-content:center !important;
+      padding:0 16px !important; margin:0 !important; line-height:normal !important;
+      text-align:center !important; box-sizing:border-box !important;
+    }
+    /* se o RD envolver o texto num span, ele tambem nao pode carregar padding */
+    #calculadora-simulacao-e99450ea44f139e159ab button > *,
+    #calculadora-simulacao-e99450ea44f139e159ab [class*="submit"] > * > *{
+      padding:0 !important; margin:0 !important; line-height:normal !important;
     }
     #calculadora-simulacao-e99450ea44f139e159ab button:hover,
     #calculadora-simulacao-e99450ea44f139e159ab input[type="submit"]:hover{

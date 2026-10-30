@@ -1718,7 +1718,7 @@ function Calculadora() {
       color: '#090F0C',
       boxShadow: '0 6px 28px #00D15E28'
     }
-  }, "Falar com um especialista →"), /*#__PURE__*/React.createElement("div", {
+  }, "Receber simulação →"), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 mt-4"
   }, [`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes ? `⚡ Parcelas quitadas no mês ${paybackMes}` : ''].filter(Boolean).map(t => /*#__PURE__*/React.createElement("div", {
     key: t,
