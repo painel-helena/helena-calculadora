@@ -491,6 +491,15 @@ function RdForm({
     const wrap = campo.closest('.bricks-form__field') || campo.closest('[class*="field"]') || campo.parentElement;
     if (wrap) wrap.style.display = 'none';
 
+    /* Texto do botao de envio. O RD manda "Cadastrar"; aqui dizemos o que
+       realmente acontece ao clicar. Trocado por JS para nao depender do
+       editor do RD. */
+    const envia = box.querySelector('button[type="submit"]') || box.querySelector('input[type="submit"]');
+    if (envia && !envia.__textoOk) {
+      envia.__textoOk = true;
+      if (envia.tagName === 'INPUT') envia.value = 'Receber simulação';else envia.textContent = 'Receber simulação';
+    }
+
     /* Ao enviar o form, manda os dados DIRETO pro n8n (banco/planilha + card Helena),
        em paralelo com o envio pro RD. Garante o registro mesmo se o RD falhar. */
     const form = box.querySelector('form');
@@ -1753,9 +1762,7 @@ function Calculadora() {
     }
   }, /*#__PURE__*/React.createElement(RdForm, {
     simUrl: simUrl
-  })), /*#__PURE__*/React.createElement("p", {
-    className: "text-[11px] text-slate-600 text-center mt-3"
-  }, "Sem spam · Você recebe a simulação no seu e-mail"))), document.body), step === 2 && /*#__PURE__*/React.createElement("div", {
+  })))), document.body), step === 2 && /*#__PURE__*/React.createElement("div", {
     className: "card p-6 text-center fu",
     id: "cta-form"
   }, /*#__PURE__*/React.createElement("div", {

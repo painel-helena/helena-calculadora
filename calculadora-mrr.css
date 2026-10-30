@@ -85,39 +85,59 @@
        NAO reconstroi o formulario (a tentativa de jun/2026 quebrou e foi revertida).
        Para reverter: apague este bloco inteiro.
        ════════════════════════════════════════════════════════════════════ */
+    /* 1. zera TODO fundo dentro do formulario (o RD pinta um bloco cinza em
+          um wrapper proprio). background-color so, para nao matar icones. */
+    #calculadora-simulacao-e99450ea44f139e159ab,
+    #calculadora-simulacao-e99450ea44f139e159ab *{
+      background-color:transparent !important;
+      box-shadow:none !important;
+    }
     #calculadora-simulacao-e99450ea44f139e159ab,
     #calculadora-simulacao-e99450ea44f139e159ab form,
-    #calculadora-simulacao-e99450ea44f139e159ab > div,
-    #calculadora-simulacao-e99450ea44f139e159ab [class*="bricks-form"],
-    #calculadora-simulacao-e99450ea44f139e159ab [class*="bricks--form"]{
-      background:transparent !important; box-shadow:none !important; border:0 !important;
-    }
+    #calculadora-simulacao-e99450ea44f139e159ab > div{ border:0 !important; }
+
+    /* 2. rotulos legiveis */
     #calculadora-simulacao-e99450ea44f139e159ab label,
     #calculadora-simulacao-e99450ea44f139e159ab [class*="label"]{
       color:#334155 !important; font-weight:600 !important;
       font-size:12px !important; letter-spacing:.01em !important;
     }
+
+    /* 3. textos de apoio do RD (aviso de spam etc) com contraste minimo */
+    #calculadora-simulacao-e99450ea44f139e159ab p,
+    #calculadora-simulacao-e99450ea44f139e159ab small,
+    #calculadora-simulacao-e99450ea44f139e159ab span:not([class*="error"]){
+      color:#64748B !important;
+    }
+    #calculadora-simulacao-e99450ea44f139e159ab [class*="error"],
+    #calculadora-simulacao-e99450ea44f139e159ab [class*="invalid"]{
+      color:#DC2626 !important;
+    }
+
+    /* 4. devolve o fundo so onde deve existir: campos */
     #calculadora-simulacao-e99450ea44f139e159ab input[type="text"],
     #calculadora-simulacao-e99450ea44f139e159ab input[type="email"],
     #calculadora-simulacao-e99450ea44f139e159ab input[type="tel"],
     #calculadora-simulacao-e99450ea44f139e159ab input[type="number"],
-    #calculadora-simulacao-e99450ea44f139e159ab select{
-      background:#FFFFFF !important; border:1px solid #CBD5E1 !important;
-      border-radius:9px !important; color:#0F172A !important;
-      box-shadow:none !important; height:42px !important;
+    #calculadora-simulacao-e99450ea44f139e159ab select,
+    #calculadora-simulacao-e99450ea44f139e159ab textarea{
+      background-color:#FFFFFF !important; border:1px solid #CBD5E1 !important;
+      border-radius:9px !important; color:#0F172A !important; height:42px !important;
     }
     #calculadora-simulacao-e99450ea44f139e159ab input:focus,
     #calculadora-simulacao-e99450ea44f139e159ab select:focus{
       border-color:#00B050 !important; outline:2px solid rgba(0,209,94,.25) !important;
       outline-offset:1px !important;
     }
+
+    /* 5. e no botao de enviar */
     #calculadora-simulacao-e99450ea44f139e159ab button[type="submit"],
-    #calculadora-simulacao-e99450ea44f139e159ab input[type="submit"],
-    #calculadora-simulacao-e99450ea44f139e159ab [class*="submit"] button{
-      background:linear-gradient(135deg,#00D15E,#00B050) !important;
+    #calculadora-simulacao-e99450ea44f139e159ab input[type="submit"]{
+      background-image:linear-gradient(135deg,#00D15E,#00B050) !important;
+      background-color:#00C257 !important;
       color:#06120B !important; border:0 !important; border-radius:12px !important;
-      font-weight:800 !important; letter-spacing:.01em !important;
-      height:46px !important; box-shadow:0 6px 22px rgba(0,209,94,.22) !important;
+      font-weight:800 !important; height:46px !important;
+      box-shadow:0 6px 22px rgba(0,209,94,.22) !important;
       cursor:pointer !important; transition:filter .15s ease !important;
     }
     #calculadora-simulacao-e99450ea44f139e159ab button[type="submit"]:hover,
