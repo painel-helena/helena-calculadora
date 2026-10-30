@@ -491,13 +491,16 @@ function RdForm({
     const wrap = campo.closest('.bricks-form__field') || campo.closest('[class*="field"]') || campo.parentElement;
     if (wrap) wrap.style.display = 'none';
 
-    /* Texto do botao de envio. O RD manda "Cadastrar"; aqui dizemos o que
-       realmente acontece ao clicar. Trocado por JS para nao depender do
-       editor do RD. */
-    const envia = box.querySelector('button[type="submit"]') || box.querySelector('input[type="submit"]');
+    /* Texto do botao de envio: so troca se ainda estiver no padrao do RD
+       ("Cadastrar"). Se o texto foi definido no editor do RD, essa escolha vence.
+       Busca ampla porque o botao do RD pode vir sem o atributo type. */
+    const envia = box.querySelector('button[type="submit"], input[type="submit"], button');
     if (envia && !envia.__textoOk) {
       envia.__textoOk = true;
-      if (envia.tagName === 'INPUT') envia.value = 'Receber simulação';else envia.textContent = 'Receber simulação';
+      const atual = (envia.tagName === 'INPUT' ? envia.value : envia.textContent || '').trim();
+      if (!atual || /^cadastrar$/i.test(atual) || /^enviar$/i.test(atual)) {
+        if (envia.tagName === 'INPUT') envia.value = 'Receber simulação';else envia.textContent = 'Receber simulação';
+      }
     }
 
     /* Ao enviar o form, manda os dados DIRETO pro n8n (banco/planilha + card Helena),

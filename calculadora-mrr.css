@@ -122,7 +122,9 @@
     #calculadora-simulacao-e99450ea44f139e159ab select,
     #calculadora-simulacao-e99450ea44f139e159ab textarea{
       background-color:#FFFFFF !important; border:1px solid #CBD5E1 !important;
-      border-radius:9px !important; color:#0F172A !important; height:42px !important;
+      border-radius:9px !important; color:#0F172A !important; height:44px !important;
+      font-size:16px !important;   /* abaixo de 16px o iPhone da zoom ao focar */
+      width:100% !important; max-width:100% !important;
     }
     #calculadora-simulacao-e99450ea44f139e159ab input:focus,
     #calculadora-simulacao-e99450ea44f139e159ab select:focus{
@@ -131,16 +133,19 @@
     }
 
     /* 5. e no botao de enviar */
-    #calculadora-simulacao-e99450ea44f139e159ab button[type="submit"],
-    #calculadora-simulacao-e99450ea44f139e159ab input[type="submit"]{
+    #calculadora-simulacao-e99450ea44f139e159ab button,
+    #calculadora-simulacao-e99450ea44f139e159ab input[type="submit"],
+    #calculadora-simulacao-e99450ea44f139e159ab input[type="button"],
+    #calculadora-simulacao-e99450ea44f139e159ab [class*="submit"] > *{
       background-image:linear-gradient(135deg,#00D15E,#00B050) !important;
       background-color:#00C257 !important;
       color:#06120B !important; border:0 !important; border-radius:12px !important;
       font-weight:800 !important; height:46px !important;
       box-shadow:0 6px 22px rgba(0,209,94,.22) !important;
       cursor:pointer !important; transition:filter .15s ease !important;
+      width:100% !important; font-size:15px !important; line-height:1 !important;
     }
-    #calculadora-simulacao-e99450ea44f139e159ab button[type="submit"]:hover,
+    #calculadora-simulacao-e99450ea44f139e159ab button:hover,
     #calculadora-simulacao-e99450ea44f139e159ab input[type="submit"]:hover{
       filter:brightness(1.06) !important;
     }
@@ -148,8 +153,11 @@
     /* ── Janela centralizada do formulário (out/2026) ───────────────────── */
     .modal-ov{
       position:fixed; inset:0; z-index:9999;
-      display:flex; align-items:center; justify-content:center;
-      padding:20px; overflow-y:auto;
+      /* flex-start + margin:auto no filho: centraliza quando cabe e deixa
+         ROLAR quando nao cabe. Com align-items:center o topo some em tela baixa. */
+      display:flex; align-items:flex-start; justify-content:center;
+      padding:20px; overflow-y:auto; overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
       background:rgba(4,10,7,.78); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
       animation:ovIn .18s ease-out;
     }
@@ -170,5 +178,11 @@
     .modal-x:hover{color:#D8E8DE; border-color:#2A3A2A}
     .modal-x:focus-visible{outline:2px solid #00D15E; outline-offset:2px}
     body.modal-open{overflow:hidden}
-    @media (max-width:560px){ .modal-cx{padding:20px; border-radius:16px} }
+    @media (max-width:560px){
+      .modal-ov{padding:10px}
+      .modal-cx{padding:18px 16px; border-radius:16px; max-width:100%}
+      .modal-x{top:10px; right:10px}
+    }
+    /* telas baixas (celular deitado): a janela rola junto, nao corta */
+    @media (max-height:640px){ .modal-ov{align-items:flex-start} .modal-cx{margin:0 auto} }
     @media (prefers-reduced-motion:reduce){ .modal-ov,.modal-cx{animation:none} }
