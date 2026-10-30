@@ -1439,7 +1439,107 @@ function Calculadora() {
     className: "text-g-700"
   }, "✓"), f))))))), /*#__PURE__*/React.createElement("div", {
     className: "flex flex-col gap-4 lg:sticky lg:top-16"
+  }, step < 2 && /*#__PURE__*/React.createElement("div", {
+    className: "card p-5",
+    id: "cta-form"
   }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-base font-800 text-slate-100 mb-1"
+  }, "Quer avaliar esse modelo para o seu negócio?"), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-500"
+  }, "Um especialista Helena monta um plano personalizado com base nesta simulação.")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setStep(1),
+    className: "w-full py-4 rounded-2xl font-800 text-sm transition-all active:scale-95",
+    style: {
+      background: 'linear-gradient(135deg,#00D15E,#00B050)',
+      color: '#090F0C',
+      boxShadow: '0 6px 28px #00D15E28'
+    }
+  }, "Receber simulação →"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mt-4"
+  }, [`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes ? `⚡ Parcelas quitadas no mês ${paybackMes}` : ''].filter(Boolean).map(t => /*#__PURE__*/React.createElement("div", {
+    key: t,
+    className: "flex-1 text-center text-[10px] text-slate-600 leading-tight"
+  }, t)))), step === 1 && createPortal(/*#__PURE__*/React.createElement("div", {
+    className: "modal-ov",
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-label": "Receba sua simulação por e-mail",
+    onMouseDown: e => {
+      if (e.target === e.currentTarget) setStep(0);
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal-cx"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "modal-x",
+    onClick: () => setStep(0),
+    "aria-label": "Fechar"
+  }, "✕"), /*#__PURE__*/React.createElement("div", {
+    className: "text-center mb-4 pr-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-lg font-800 text-slate-100 mb-1"
+  }, "Receba sua simulação por e-mail"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-500"
+  }, "Preencha seus dados e enviamos a simulação completa, com a projeção mês a mês.")), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-xl px-3.5 py-3 text-[11px] text-slate-500 border mb-4",
+    style: {
+      background: 'rgba(0,209,94,.04)',
+      borderColor: 'rgba(0,209,94,.12)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-g-400 font-700 mb-1"
+  }, tier.glyph, " ", tier.label, " em 12 meses"), /*#__PURE__*/React.createElement("div", null, "Plano ", /*#__PURE__*/React.createElement("strong", {
+    className: "text-slate-300"
+  }, plano === 'pro' ? 'Pro' : 'Premium'), " · ", clientes, " ", clientes === 1 ? 'conta' : 'contas', " · +", novos, "/mês"), /*#__PURE__*/React.createElement("div", null, "Margem 12m: ", /*#__PURE__*/React.createElement("strong", {
+    className: "text-g-400"
+  }, brl(ganhoLiquido12)), paybackMes && /*#__PURE__*/React.createElement("span", null, " · Parcelas quitadas no mês ", /*#__PURE__*/React.createElement("strong", {
+    className: "text-amber-400"
+  }, paybackMes)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#F8FAFC',
+      borderRadius: '14px',
+      padding: '20px'
+    }
+  }, /*#__PURE__*/React.createElement(RdForm, {
+    simUrl: simUrl
+  })))), document.body), step === 2 && /*#__PURE__*/React.createElement("div", {
+    className: "card p-6 text-center fu",
+    id: "cta-form"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-4xl mb-3"
+  }, "✅"), /*#__PURE__*/React.createElement("h3", {
+    className: "text-base font-800 text-g-400 mb-2"
+  }, "Simulação enviada!"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 leading-relaxed mb-4"
+  }, "Sua simulação foi enviada para ", /*#__PURE__*/React.createElement("strong", {
+    className: "text-slate-300"
+  }, form.email), ".", /*#__PURE__*/React.createElement("br", null), "Um especialista Helena entra em contato em até 24h."), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 text-center"
+  }, [{
+    label: 'Lucro 12m',
+    val: brl(ganhoLiquido12),
+    color: 'text-g-400'
+  }, {
+    label: 'Parcelas quitadas',
+    val: paybackMes ? `Mês ${paybackMes}` : '—',
+    color: 'text-amber-400'
+  }, {
+    label: 'Retorno',
+    val: roi > 0 ? `${Math.round(roi)}%` : '—',
+    color: 'text-g-400'
+  }, {
+    label: 'Perfil',
+    val: tier.label,
+    color: 'text-slate-300'
+  }].map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.label,
+    className: "rounded-xl bg-brand-dark/60 border border-brand-border/40 px-3 py-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-slate-500"
+  }, c.label), /*#__PURE__*/React.createElement("div", {
+    className: `text-sm font-800 ${c.color}`
+  }, c.val))))), /*#__PURE__*/React.createElement("div", {
     className: `rounded-2xl border p-4 ${nivel12.cls}`,
     style: {
       borderColor: nivel12.color + '55'
@@ -1546,109 +1646,7 @@ function Calculadora() {
     mes12: marg12,
     parcelaSetup: parcelaSetup,
     parcelas: parcelas
-  })), step < 2 && /*#__PURE__*/React.createElement("div", {
-    className: "card p-5",
-    id: "cta-form"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-center mb-4"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-base font-800 text-slate-100 mb-1"
-  }, "Quer avaliar esse modelo para o seu negócio?"), /*#__PURE__*/React.createElement("div", {
-    className: "text-xs text-slate-500"
-  }, "Um especialista Helena monta um plano personalizado com base nesta simulação.")), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setStep(1),
-    className: "w-full py-4 rounded-2xl font-800 text-sm transition-all active:scale-95",
-    style: {
-      background: 'linear-gradient(135deg,#00D15E,#00B050)',
-      color: '#090F0C',
-      boxShadow: '0 6px 28px #00D15E28'
-    }
-  }, "Receber simulação →"), /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-3 mt-4"
-  }, [`${tier.glyph} Perfil: ${tier.label}`, `💰 Lucro: ${brl(ganhoLiquido12)}/ano`, paybackMes ? `⚡ Parcelas quitadas no mês ${paybackMes}` : ''].filter(Boolean).map(t => /*#__PURE__*/React.createElement("div", {
-    key: t,
-    className: "flex-1 text-center text-[10px] text-slate-600 leading-tight"
-  }, t)))), step === 1 && createPortal(/*#__PURE__*/React.createElement("div", {
-    className: "modal-ov",
-    role: "dialog",
-    "aria-modal": "true",
-    "aria-label": "Receba sua simulação por e-mail",
-    onMouseDown: e => {
-      if (e.target === e.currentTarget) setStep(0);
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "modal-cx"
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "modal-x",
-    onClick: () => setStep(0),
-    "aria-label": "Fechar"
-  }, "✕"), /*#__PURE__*/React.createElement("div", {
-    className: "text-center mb-4 pr-6"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-lg font-800 text-slate-100 mb-1"
-  }, "Receba sua simulação por e-mail"), /*#__PURE__*/React.createElement("p", {
-    className: "text-xs text-slate-500"
-  }, "Preencha seus dados e enviamos a simulação completa, com a projeção mês a mês.")), /*#__PURE__*/React.createElement("div", {
-    className: "rounded-xl px-3.5 py-3 text-[11px] text-slate-500 border mb-4",
-    style: {
-      background: 'rgba(0,209,94,.04)',
-      borderColor: 'rgba(0,209,94,.12)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-g-400 font-700 mb-1"
-  }, tier.glyph, " ", tier.label, " em 12 meses"), /*#__PURE__*/React.createElement("div", null, "Plano ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-slate-300"
-  }, plano === 'pro' ? 'Pro' : 'Premium'), " · ", clientes, " ", clientes === 1 ? 'conta' : 'contas', " · +", novos, "/mês"), /*#__PURE__*/React.createElement("div", null, "Margem 12m: ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-g-400"
-  }, brl(ganhoLiquido12)), paybackMes && /*#__PURE__*/React.createElement("span", null, " · Parcelas quitadas no mês ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-amber-400"
-  }, paybackMes)))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: '#F8FAFC',
-      borderRadius: '14px',
-      padding: '20px'
-    }
-  }, /*#__PURE__*/React.createElement(RdForm, {
-    simUrl: simUrl
-  })))), document.body), step === 2 && /*#__PURE__*/React.createElement("div", {
-    className: "card p-6 text-center fu",
-    id: "cta-form"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-4xl mb-3"
-  }, "✅"), /*#__PURE__*/React.createElement("h3", {
-    className: "text-base font-800 text-g-400 mb-2"
-  }, "Simulação enviada!"), /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 leading-relaxed mb-4"
-  }, "Sua simulação foi enviada para ", /*#__PURE__*/React.createElement("strong", {
-    className: "text-slate-300"
-  }, form.email), ".", /*#__PURE__*/React.createElement("br", null), "Um especialista Helena entra em contato em até 24h."), /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-2 gap-2 text-center"
-  }, [{
-    label: 'Lucro 12m',
-    val: brl(ganhoLiquido12),
-    color: 'text-g-400'
-  }, {
-    label: 'Parcelas quitadas',
-    val: paybackMes ? `Mês ${paybackMes}` : '—',
-    color: 'text-amber-400'
-  }, {
-    label: 'Retorno',
-    val: roi > 0 ? `${Math.round(roi)}%` : '—',
-    color: 'text-g-400'
-  }, {
-    label: 'Perfil',
-    val: tier.label,
-    color: 'text-slate-300'
-  }].map(c => /*#__PURE__*/React.createElement("div", {
-    key: c.label,
-    className: "rounded-xl bg-brand-dark/60 border border-brand-border/40 px-3 py-2"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "text-[10px] text-slate-500"
-  }, c.label), /*#__PURE__*/React.createElement("div", {
-    className: `text-sm font-800 ${c.color}`
-  }, c.val))))), /*#__PURE__*/React.createElement("div", {
-    className: "card p-6"
-  }, /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     className: "flex flex-wrap gap-3 justify-center mt-3 mb-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1.5 text-[10px] text-slate-500"
